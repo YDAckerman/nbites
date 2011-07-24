@@ -94,15 +94,33 @@ float AugmentedMCL::measurementUpdate(std::vector<PointObservation> z_t,
     float w = 0.0f;
     for(int i = 0; i < z_t.size(); ++i)
     {
-	/* @todo
-	std::vector<Observation> pointLandmarks = z_t[i].getPossibilities();
-	std::vector<CornerLandmark> cornerLandmarks = z_t[i].getPosibilities();
+	// Making the assumption that we receive either a PointObservation or a 
+	// CornerObservation.
+	std::vector<Observation> landmarkPossibilies;
+	if(c_t.size() == 0)
+	    landmarkPossibilies = z_t[i].getPosibilities();
+	else
+	    landmarkPossibilies = c_t[i].getPosibilities();
+	    
 	for(int j = 0; j < z_t[i].getPossibilities(); ++j)
 	{
-	    w = findCorrespondence(z_t[i].getPossibilities()[j], x_t);
+	    if(c_t.size() == 0)
+		w = findCorrespondence<PointObservation, PointLandmark>
+		    (z_t[i],
+		     z_t[i].getPossibilities()[j],
+		     x_t);
+	    else 
+		w = findCorrespondence<CornerObservation, CornerLandmark>
+		    (c_t[i],
+		     c_t[i].getPossibilities()[j],
+		     x_t);	
+
+	    if(w > maxWeight)
+		maxWeight = w;
 	}
-	*/
     }
+
+    return maxWeight;
 }
 
 float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
