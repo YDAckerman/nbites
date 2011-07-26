@@ -20,6 +20,15 @@
 #include "VisualCorner.h"
 #include "VisualCross.h"
 
+class VisualMeasurement
+{
+ public:
+    VisualMeasurement() { }
+    virtual ~VisualMeasurement() { }
+
+};
+
+
 /**
  * The constructors for all point observations are identical based on
  * their types, but can't be templated because we don't want

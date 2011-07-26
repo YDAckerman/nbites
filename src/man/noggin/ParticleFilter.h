@@ -117,16 +117,16 @@ class ParticleFilter
 };
 
 template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-ParticleFilter<State, Measurement, Control>::ParticleFilter(int particles)
+ParticleFilter<State, Measurement, Control, stateVectorDimensions>::ParticleFilter(int particles)
     : M(particles), totalWeight(0.0f)
 { }
 
 template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-ParticleFilter<State, Measurement, Control>::~ParticleFilter()
+ParticleFilter<State, Measurement, Control, stateVectorDimensions>::~ParticleFilter()
 { }
 
 template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control>::updateRule(ParticleSet X_t_1, 
+std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, stateVectorDimensions>::updateRule(ParticleSet X_t_1, 
 										      Control u_t, 
 										      std::vector<Measurement> z_t)
 {
@@ -148,7 +148,7 @@ std::vector<Particle<State> > ParticleFilter<State, Measurement, Control>::updat
 }
 
 template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control>::resample(ParticleSet X_t_bar)
+std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, stateVectorDimensions>::resample(ParticleSet X_t_bar)
 {
     using namespace std;
 

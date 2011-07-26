@@ -81,6 +81,7 @@ SET( NOGGIN_SRCS Noggin
                  BallEKF
                  PyLoc
                  # LocEKF
+		 AugmentedMCL
 		 MultiMeasurementEKF
 		 MultiLocEKF
 		 PyConstants

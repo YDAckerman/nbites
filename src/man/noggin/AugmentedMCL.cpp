@@ -1,7 +1,7 @@
 #include "AugmentedMCL.h"
 
 AugmentedMCL::AugmentedMCL(int particles, int width, int height)
-    : ParticleFilter(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
+    : ParticleFilter<PoseEst, MotionModel, Observation, PF::PoseDimensions>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
 {
     // Randomly (and uniformly?) distribute M particles over the entire
     // pose space initially.
@@ -31,6 +31,8 @@ void AugmentedMCL::updateLocalization(const MotionModel& u_t,
     // @todo
     lastPointObservations = pt_z;
     lastCornerObservations = c_z;
+
+    
 }
 
 void AugmentedMCL::reset()
@@ -86,41 +88,19 @@ float AugmentedMCL::measurementUpdate(std::vector<PointObservation> z_t,
 				      std::vector<CornerObservation> c_t,
 				      PoseEst x_t)
 {
-    // @todo
-    // Find the weight of all observations (including all possible landmarks if
-    // the observation is ambiguous, then choose the observation with the
-    // highest weight.
-    float maxWeight = 0.0f;
-    float w = 0.0f;
-    for(int i = 0; i < z_t.size(); ++i)
-    {
-	// Making the assumption that we receive either a PointObservation or a 
-	// CornerObservation.
-	std::vector<Observation> landmarkPossibilies;
-	if(c_t.size() == 0)
-	    landmarkPossibilies = z_t[i].getPosibilities();
-	else
-	    landmarkPossibilies = c_t[i].getPosibilities();
-	    
-	for(int j = 0; j < z_t[i].getPossibilities(); ++j)
-	{
-	    if(c_t.size() == 0)
-		w = findCorrespondence<PointObservation, PointLandmark>
-		    (z_t[i],
-		     z_t[i].getPossibilities()[j],
-		     x_t);
-	    else 
-		w = findCorrespondence<CornerObservation, CornerLandmark>
-		    (c_t[i],
-		     c_t[i].getPossibilities()[j],
-		     x_t);	
+    float pointWeight = 0.0f;
+    float cornerWeight = 0.0f;
 
-	    if(w > maxWeight)
-		maxWeight = w;
-	}
-    }
+    if(z_t.size() != 0)
+	pointWeight = measurementUpdate<PointObservation, PointLandmark>(z_t, x_t);
 
-    return maxWeight;
+    if(c_t.size() != 0)
+	cornerWeight = measurementUpdate<CornerObservation, CornerLandmark>(c_t, x_t);
+
+    if(pointWeight > cornerWeight)
+	return pointWeight;
+    else 
+	return cornerWeight;
 }
 
 float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
@@ -137,6 +117,6 @@ float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
 
 float AugmentedMCL::probabilityNormalDistribution(float a, float standardDeviation)
 {
-    return 1/std::sqrt(2*NBMath::M_PI_FLOAT*standardDeviation*standardDeviation)
+    return 1/std::sqrt(2*M_PI_FLOAT*standardDeviation*standardDeviation)
 	* std::exp(-(a*a)/(2*standardDeviation*standardDeviation));
 }

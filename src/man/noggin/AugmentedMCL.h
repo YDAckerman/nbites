@@ -106,7 +106,7 @@ class AugmentedMCL : public ParticleFilter<PoseEst, MotionModel, Observation, PF
      * estimate.
      */
     template <class ObservationType, class LandmarkType>
-    float findCorrespondence(ObservationType& z, LandmarkType& l, PoseEst x_t);
+    float findCorrespondence(ObservationType& z, LandmarkType& l, PoseEst& x_t);
 
     /**
      * Updates the current pose estimates and uncertainties.
@@ -128,6 +128,9 @@ class AugmentedMCL : public ParticleFilter<PoseEst, MotionModel, Observation, PF
     float measurementUpdate(std::vector<PointObservation> pt_z,
 			    std::vector<CornerObservation> c_z,
 			    PoseEst x_t);
+
+    template <class ObservationType, class LandmarkType>
+    float measurementUpdate(std::vector<ObservationType> z_t, PoseEst x_t);
     
     int fieldWidth;
     int fieldHeight;
@@ -147,11 +150,39 @@ float AugmentedMCL::findCorrespondence(ObservationType& z,
 {
     float r_hat = hypotf(l.x - x_t.x, l.y - x_t.y);
     float psi_hat = std::atan2(l.y - x_t.y, l.x - x_t.x);
-    float q = probabilityNormalDistribution(z.getVisualDistance() - r_hat,
+    float q = probabilityNormalDistribution(z.getVisDistance() - r_hat,
 					    z.getDistanceSD())
 	* probabilityNormalDistribution(z.getVisBearing() - psi_hat,
 					z.getBearingSD());
     return q;
 }
+
+template <class ObservationType, class LandmarkType>
+float AugmentedMCL::measurementUpdate(std::vector<ObservationType> z_t, PoseEst x_t)
+{
+    // Find the weight of all observations (including all possible landmarks if
+    // the observation is ambiguous, then choose the observation with the
+    // highest weight.
+    float maxWeight = 0.0f;
+    float w = 0.0f;
+    for(int i = 0; i < z_t.size(); ++i)
+    {
+	std::vector<ObservationType> landmarkPossibilies;
+	    
+	for(int j = 0; j < z_t[i].getNumPossibilities(); ++j)
+	{
+	    w = findCorrespondence<ObservationType, LandmarkType>
+		(z_t[i],
+		 z_t[i].getPossibilities()[j],
+		 x_t);	
+
+	    if(w > maxWeight)
+		maxWeight = w;
+	}
+    }
+
+    return maxWeight;
+}
+ 
 
 #endif // AUGMENTED_MCL_H
