@@ -11,12 +11,8 @@ AugmentedMCL::AugmentedMCL(int particles, int width, int height)
 	PoseEst randomPose;
 	randomPose.x = (rand() % fieldWidth)*1.0f;
 	randomPose.y = (rand() % fieldHeight)*1.0f;
-	bool negative = (bool)(rand() % 2);
-	if(negative)
-	    randomPose.h = (-(rand() % 91)*1.0f)*TO_RAD;
-	else
-	    randomPose.h = ((rand() % 91)*1.0f)*TO_RAD;
-
+	randomPose.h = NBMath::subPIAngle(((rand() % 361)*1.0f)*TO_RAD);
+	
 	X_t.push_back(randomPose);
     }
 }
