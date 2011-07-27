@@ -1,7 +1,7 @@
 #include "AugmentedMCL.h"
 
 AugmentedMCL::AugmentedMCL(int particles, int width, int height)
-    : ParticleFilter<PoseEst, MotionModel, Observation, PF::PoseDimensions>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
+    : ParticleFilter<PoseEst, MotionModel, std::vector<VisualMeasurement>, PF::PoseDimensions, PF::TwoMeasurement>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
 {
     // Randomly (and uniformly?) distribute M particles over the entire
     // pose space initially.
@@ -11,8 +11,8 @@ AugmentedMCL::AugmentedMCL(int particles, int width, int height)
 	PoseEst randomPose;
 	randomPose.x = (rand() % fieldWidth)*1.0f;
 	randomPose.y = (rand() % fieldHeight)*1.0f;
-	randomPose.h = NBMath::subPIAngle(((rand() % 361)*1.0f)*TO_RAD);
-	
+       	randomPose.h = ((rand() % 361)*1.0f)*TO_RAD;
+	randomPose.h = NBMath::subPIAngle(randomPose.h);
 	X_t.push_back(randomPose);
     }
 }
@@ -24,11 +24,29 @@ void AugmentedMCL::updateLocalization(const MotionModel& u_t,
 				      const std::vector<PointObservation>& pt_z,
 				      const std::vector<CornerObservation>& c_z)
 {
-    // @todo
     lastPointObservations = pt_z;
     lastCornerObservations = c_z;
 
-    
+    // If are no new observations, do not update localization.
+    if(lastPointObservations.size() == 0 && lastCornerObservations.size() == 0)
+	return;
+   
+    // Kind of a hack to ... @todo explain
+    std::vector<std::vector<VisualMeasurement> > measurements;
+    measurements.push_back(pt_z);
+    measurements.push_back(c_z);
+
+    std::vector<Particle<PoseEst> > X_t_1 = X_t;
+
+    std::vector<Particle<PoseEst> > X_t_bar = updateRule(X_t_1, u_t, measurements);
+
+    w_slow += ALPHA_SLOW*(averageWeight - w_slow);
+    w_fast += ALPHA_FAST*(averageWeight - w_fast);
+
+    X_t = resample(X_t_bar);
+
+    // Make and update estimates.
+    // @todo
 }
 
 void AugmentedMCL::reset()
@@ -74,21 +92,23 @@ PoseEst AugmentedMCL::prediction(MotionModel u_t, PoseEst x_t_1)
     u_t.deltaL -= sampleNormalDistribution(std::fabs(u_t.deltaL));
     u_t.deltaR -= sampleNormalDistribution(std::fabs(u_t.deltaR));
 
-    x_t += u_t;
+    x_t_1 += u_t;
     x_t.h = NBMath::subPIAngle(x_t.h);
 
-    return x_t;
+    return x_t_1;
 }
 
-float AugmentedMCL::measurementUpdate(std::vector<PointObservation> z_t,
-				      std::vector<CornerObservation> c_t,
+float AugmentedMCL::measurementUpdate(std::vector<std::vector<VisualMeasurement> > z_t,
 				      PoseEst x_t)
 {
+    std::vector<PointObservation> pt_z = z_t[0];
+    std::vector<CornerObservation> c_t = z_t[1];
+
     float pointWeight = 0.0f;
     float cornerWeight = 0.0f;
 
     if(z_t.size() != 0)
-	pointWeight = measurementUpdate<PointObservation, PointLandmark>(z_t, x_t);
+	pointWeight = measurementUpdate<PointObservation, PointLandmark>(pt_t, x_t);
 
     if(c_t.size() != 0)
 	cornerWeight = measurementUpdate<CornerObservation, CornerLandmark>(c_t, x_t);
@@ -97,6 +117,60 @@ float AugmentedMCL::measurementUpdate(std::vector<PointObservation> z_t,
 	return pointWeight;
     else 
 	return cornerWeight;
+}
+
+std::vector<Particle<PoseEst> > AugmentedMCL::resample(std::vector<Particle<PoseEst> > X_t_bar)
+{
+    X_t.clear();
+
+    // Normalize the weights.
+    for(int i = 0; i < M; ++i)
+	X_t_bar[i].setWeight(X_t_bar[i].getWeight()/totalWeight);
+    
+    averageWeight /= M;
+
+    srand(time(0));
+    float random = 0.0f;
+
+    // Set the probability to be max{0.0, 1.0-w_fast/w_slow}.
+    float injectionProbability = 1.0 - (w_fast/w_slow);
+    if(injectionProbability < 0.0)
+	injectionProbability = 0.0f;
+
+    for(int i = 0; i < M; ++i)
+    {
+	// Check if necessary to inject random particle.
+	random = (rand() % 101)/100.0f;
+	if(random < injectionProbability)
+	{
+	    PoseEst randomPose;
+	    randomPose.x = (rand() % fieldWidth)*1.0f;
+	    randomPose.y = (rand() % fieldHeight)*1.0f;
+	    randomPose.h = ((rand() % 361)*1.0f)*TO_RAD;
+	    
+	    randomPose.h = NBMath::subPIAngle(randomPose.h);
+	    
+	    X_t.push_back(randomPose);
+	}
+	// Otherwise, continue normal resampling process.
+	else
+	{
+	    random = (rand() % 101)/100.0f;
+	    for(int i = 0; i < M; ++i)
+	    {
+		// Select a random particle based on the random number and the weights of each
+		// particle.
+		if(random < X_t_bar[i].getWeight())
+		{
+		    X_t.push_back(X_t_bar[i]);
+		    break;
+		}
+		random -= X_t_bar[i].getWeight();
+	    }
+	}
+    }
+    
+    return X_t;
 }
 
 float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
@@ -115,4 +189,9 @@ float AugmentedMCL::probabilityNormalDistribution(float a, float standardDeviati
 {
     return 1/std::sqrt(2*M_PI_FLOAT*standardDeviation*standardDeviation)
 	* std::exp(-(a*a)/(2*standardDeviation*standardDeviation));
+}
+
+void AugmentedMCL::updateEstimates()
+{
+
 }

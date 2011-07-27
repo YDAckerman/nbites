@@ -9,7 +9,10 @@ enum PF
 {
     PoseDimensions = 3,
     PointMeasurementDimensions = 2,
-    CornerMeasurementDimensions = 3
+    CornerMeasurementDimensions = 3,
+
+    OneMeasurement = 1,
+    TwoMeasurement = 2
 };
 
 template <class State>
@@ -48,7 +51,8 @@ template <class State>
 Particle<State>::~Particle()
 { }
 
-template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
+template <class State, class Measurement, class Control, 
+    unsigned int stateVectorDimensions, unsigned int numMeasurements>
 class ParticleFilter 
 {
  public:
@@ -114,23 +118,34 @@ class ParticleFilter
     ParticleSet X_t;
     int M;
     float totalWeight;
+    float averageWeight;
 };
 
-template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-ParticleFilter<State, Measurement, Control, stateVectorDimensions>::ParticleFilter(int particles)
-    : M(particles), totalWeight(0.0f)
+template <class State, class Measurement, class Control, 
+    unsigned int stateVectorDimensions, unsigned int numMeasurements>
+ParticleFilter<State, Measurement, Control, 
+    stateVectorDimensions, numMeasurements>::ParticleFilter(int particles)
+    : M(particles), totalWeight(0.0f), averageWeight(0.0f)
 { }
 
-template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-ParticleFilter<State, Measurement, Control, stateVectorDimensions>::~ParticleFilter()
+template <class State, class Measurement, class Control, 
+    unsigned int stateVectorDimensions, unsigned int numMeasurements>
+ParticleFilter<State, Measurement, Control, 
+    stateVectorDimensions, numMeasurements>::~ParticleFilter()
 { }
 
-template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, stateVectorDimensions>::updateRule(ParticleSet X_t_1, 
-										      Control u_t, 
-										      std::vector<Measurement> z_t)
+template <class State, class Measurement, class Control, 
+    unsigned int stateVectorDimensions, unsigned int numMeasurements>
+std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, 
+    stateVectorDimensions, numMeasurements>::updateRule(ParticleSet X_t_1, 
+							Control u_t, 
+							std::vector<Measurement> z_t)
 {
     ParticleSet X_t_bar;
+
+    // Reset the average weight.
+    averageWeight = 0.0f;
+    
     totalWeight = 0.0f;
     for(int m = 0; m < M; ++m)
     {
@@ -143,19 +158,22 @@ std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, stateV
 	Particle<State> p(x_t_m, w_t_m);
 	X_t_bar.push_back(p);
     }
+    averageWeight = totalWeight/M;
     // Return the updated set.
     return X_t_bar;
 }
 
-template <class State, class Measurement, class Control, unsigned int stateVectorDimensions>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, stateVectorDimensions>::resample(ParticleSet X_t_bar)
+template <class State, class Measurement, class Control, 
+    unsigned int stateVectorDimensions, unsigned int numMeasurements>
+std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, 
+    stateVectorDimensions, numMeasurements>::resample(ParticleSet X_t_bar)
 {
     using namespace std;
 
     X_t.clear();
 
     // Normalize the weights.
-    for(int i = 0; i < M; i++)
+    for(int i = 0; i < M; ++i)
 	X_t_bar[i].setWeight(X_t_bar[i].getWeight()/totalWeight);
 
     srand(time(0));
