@@ -7,7 +7,16 @@
 #include "LocSystem.h"
 #include "NBMath.h"
 
-class AugmentedMCL : public ParticleFilter<PoseEst, MotionModel, Observation, PF::PoseDimensions>, LocSystem
+// Decay rates for exponential importance factor filters.
+static const float ALPHA_FAST = 0.2f;
+static const float ALPHA_SLOW = 0.05f;
+
+class AugmentedMCL : public ParticleFilter<PoseEst, 
+                                           MotionModel, 
+                                           std::vector<VisualMeasurement>,
+                                           PF::PoseDimensions, 
+                                           PF::TwoMeasurement>, 
+                     LocSystem
 {
  public:
     /**
@@ -125,8 +134,7 @@ class AugmentedMCL : public ParticleFilter<PoseEst, MotionModel, Observation, PF
      * @return A new predicted pose based on current and previous information.
      */
     PoseEst prediction(MotionModel u_t, PoseEst x_t_1);
-    float measurementUpdate(std::vector<PointObservation> pt_z,
-			    std::vector<CornerObservation> c_z,
+    float measurementUpdate(std::vector<std::vector<VisualMeasurement> > z_t,
 			    PoseEst x_t);
 
     template <class ObservationType, class LandmarkType>
@@ -141,6 +149,9 @@ class AugmentedMCL : public ParticleFilter<PoseEst, MotionModel, Observation, PF
     
     PoseEst currPoseEstimate;
     PoseEst currPoseUncertainty;
+
+    float w_slow;
+    float w_fast;
 };
 
 template <class ObservationType, class LandmarkType>
