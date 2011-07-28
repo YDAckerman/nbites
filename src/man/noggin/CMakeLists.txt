@@ -82,8 +82,8 @@ SET( NOGGIN_SRCS Noggin
                  PyLoc
                  # LocEKF
 		 AugmentedMCL
-		 MultiMeasurementEKF
-		 MultiLocEKF
+		 # MultiMeasurementEKF
+		 # MultiLocEKF
 		 PyConstants
 		 PyObjects
 		 CombinationObjects

@@ -20,14 +20,6 @@
 #include "VisualCorner.h"
 #include "VisualCross.h"
 
-class VisualMeasurement
-{
- public:
-    VisualMeasurement() { }
-    virtual ~VisualMeasurement() { }
-
-};
-
 /**
  * The constructors for all point observations are identical based on
  * their types, but can't be templated because we don't want
@@ -37,7 +29,7 @@ class VisualMeasurement
     Observation(const VisT &_object)                                    \
         : visDist(_object.getDistance()), visBearing(_object.getBearing()), \
           sigma_d(_object.getDistanceSD()), sigma_b(_object.getBearingSD()), \
-	id(_object.getID()), possibilities(), VisualMeasurement()	\
+	id(_object.getID()), possibilities()				\
     {                                                                   \
         const std::list <const ConcT *> * objList =                     \
             _object.getPossibilities();                                 \
@@ -63,7 +55,7 @@ class VisualMeasurement
  *        Observation corresponds to.
  */
 template<class LandmarkT>
-class Observation : public VisualMeasurement
+class Observation
 {
 public:
     POINT_OBSERVATION_CONSTRUCTOR(VisualFieldObject, ConcreteFieldObject)
@@ -74,7 +66,7 @@ public:
     Observation(const VisualCorner &_object)
     : visDist(_object.getDistance()), visBearing(_object.getBearing()),
         sigma_d(_object.getDistanceSD()), sigma_b(_object.getBearingSD()),
-        id(_object.getID()), possibilities(), VisualMeasurement()
+        id(_object.getID()), possibilities()
         {
             const std::list <const ConcreteCorner *> * objList =
                 _object.getPossibilities();

@@ -5,14 +5,11 @@
 #include <cstdlib>
 #include <ctime>
 
-enum PF
+namespace PF
 {
-    PoseDimensions = 3,
-    PointMeasurementDimensions = 2,
-    CornerMeasurementDimensions = 3,
-
-    OneMeasurement = 1,
-    TwoMeasurement = 2
+    static const unsigned int PoseDimensions = 3u;
+    static const unsigned int PointMeasurementDimensions = 2u;
+    static const unsigned int CornerMeasurementDimensions = 3u;
 };
 
 template <class State>
@@ -51,8 +48,8 @@ template <class State>
 Particle<State>::~Particle()
 { }
 
-template <class State, class Measurement, class Control, 
-    unsigned int stateVectorDimensions, unsigned int numMeasurements>
+template <class State, class MeasurementOne, class MeasurementTwo, class Control, 
+    unsigned int stateVectorDimensions>
 class ParticleFilter 
 {
  public:
@@ -80,7 +77,9 @@ class ParticleFilter
      *
      * @return The updated particle set (before resampling.)
      */
-    ParticleSet updateRule(ParticleSet X_t_1, Control u_t, std::vector<Measurement> z_t);
+    ParticleSet updateRule(ParticleSet X_t_1, Control &u_t,
+			   std::vector<MeasurementOne> &z1_t,
+			   std::vector<MeasurementTwo> &z2_t);
 
     /**
      * Finds the current state by sampling the state transition distribution, based on the 
@@ -102,7 +101,9 @@ class ParticleFilter
      *
      * @return The weight of the particle with state x_t.
      */
-    virtual float measurementUpdate(std::vector<Measurement> z_t, State x_t) = 0;
+    virtual float measurementUpdate(std::vector<MeasurementOne> &z1_t, 
+				    std::vector<MeasurementTwo> &z2_t, 
+				    State x_t) = 0;
 
     /**
      * Draws with replacement M particles from the temporary set into a new particle set 
@@ -112,7 +113,7 @@ class ParticleFilter
      *
      * @return The resampled set of particles from the set X_t_bar.
      */
-    ParticleSet resample(ParticleSet X_t_bar);
+    virtual ParticleSet resample(ParticleSet X_t_bar);
 
  protected:
     ParticleSet X_t;
@@ -121,25 +122,26 @@ class ParticleFilter
     float averageWeight;
 };
 
-template <class State, class Measurement, class Control, 
-    unsigned int stateVectorDimensions, unsigned int numMeasurements>
-ParticleFilter<State, Measurement, Control, 
-    stateVectorDimensions, numMeasurements>::ParticleFilter(int particles)
+template <class State, class MeasurementOne, class MeasurementTwo, class Control, 
+    unsigned int stateVectorDimensions>
+ParticleFilter<State, MeasurementOne, MeasurementTwo, Control, 
+    stateVectorDimensions>::ParticleFilter(int particles)
     : M(particles), totalWeight(0.0f), averageWeight(0.0f)
 { }
 
-template <class State, class Measurement, class Control, 
-    unsigned int stateVectorDimensions, unsigned int numMeasurements>
-ParticleFilter<State, Measurement, Control, 
-    stateVectorDimensions, numMeasurements>::~ParticleFilter()
+template <class State, class MeasurementOne, class MeasurementTwo, class Control, 
+    unsigned int stateVectorDimensions>
+ParticleFilter<State, MeasurementOne, MeasurementTwo, Control, 
+    stateVectorDimensions>::~ParticleFilter()
 { }
 
-template <class State, class Measurement, class Control, 
-    unsigned int stateVectorDimensions, unsigned int numMeasurements>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, 
-    stateVectorDimensions, numMeasurements>::updateRule(ParticleSet X_t_1, 
-							Control u_t, 
-							std::vector<Measurement> z_t)
+template <class State, class MeasurementOne, class MeasurementTwo, class Control, 
+    unsigned int stateVectorDimensions>
+std::vector<Particle<State> > ParticleFilter<State, MeasurementOne, MeasurementTwo, Control, 
+    stateVectorDimensions>::updateRule(ParticleSet X_t_1, 
+				       Control &u_t, 
+				       std::vector<MeasurementOne> &z1_t,
+				       std::vector<MeasurementTwo> &z2_t)
 {
     ParticleSet X_t_bar;
 
@@ -152,7 +154,7 @@ std::vector<Particle<State> > ParticleFilter<State, Measurement, Control,
 	// Sample from the state transition distribution, incorperating the control model.
 	State x_t_m = prediction(u_t, X_t_1[m].getState());
 	// Determine the importance factor by incorperating the measurement.
-	float w_t_m = measurementUpdate(z_t, x_t_m);
+	float w_t_m = measurementUpdate(z1_t, z2_t, x_t_m);
 	totalWeight += w_t_m;
 	// Add the particle to the temporary set.
 	Particle<State> p(x_t_m, w_t_m);
@@ -163,10 +165,10 @@ std::vector<Particle<State> > ParticleFilter<State, Measurement, Control,
     return X_t_bar;
 }
 
-template <class State, class Measurement, class Control, 
-    unsigned int stateVectorDimensions, unsigned int numMeasurements>
-std::vector<Particle<State> > ParticleFilter<State, Measurement, Control, 
-    stateVectorDimensions, numMeasurements>::resample(ParticleSet X_t_bar)
+template <class State, class MeasurementOne, class MeasurementTwo, class Control, 
+    unsigned int stateVectorDimensions>
+std::vector<Particle<State> > ParticleFilter<State, MeasurementOne, MeasurementTwo, Control, 
+    stateVectorDimensions>::resample(ParticleSet X_t_bar)
 {
     using namespace std;
 

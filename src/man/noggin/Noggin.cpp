@@ -7,7 +7,7 @@
 #include "PyLoc.h"
 #include "EKFStructs.h"
 #include <cstdlib>
-#include "MultiLocEKF.h"
+#include "AugmentedMCL.h"
 
 #include "PySensors.h"
 #include "PyRoboGuardian.h"
@@ -130,7 +130,9 @@ void Noggin::initializeLocalization()
 #   endif
 
     // Initialize the localization module
-    loc = shared_ptr<LocSystem>(new MultiLocEKF());
+    loc = shared_ptr<LocSystem>(new AugmentedMCL(100, 
+						 FIELD_WIDTH,
+						 FIELD_HEIGHT));
 
     ballEKF = shared_ptr<BallEKF>(new BallEKF());
 
@@ -342,7 +344,6 @@ void Noggin::updateLocalization()
     // Field Cross
     if (vision->cross->getDistance() > 0 &&
         vision->cross->getDistance() < MAX_CROSS_DISTANCE) {
-
         PointObservation seen(*vision->cross);
         pt_observations.push_back(seen);
 #       ifdef DEBUG_CROSS_OBSERVATIONS
@@ -371,6 +372,7 @@ void Noggin::updateLocalization()
 #   endif
 
     // Process the information
+    // @todo do these profiler macros need to be changed?
     PROF_ENTER(P_MCL);
     loc->updateLocalization(odometery, pt_observations, corner_observations);
     PROF_EXIT(P_MCL);

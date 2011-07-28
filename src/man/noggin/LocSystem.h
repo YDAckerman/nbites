@@ -17,9 +17,9 @@ public:
     LocSystem() : active(false), probability(0.0) {};
     virtual ~LocSystem() {};
     // Core Functions
-    virtual void updateLocalization(const MotionModel& u_t,
-                                    const std::vector<PointObservation>& pt_z,
-                                    const std::vector<CornerObservation>& c_z) = 0;
+    virtual void updateLocalization(MotionModel& u_t,
+                                    std::vector<PointObservation>& pt_z,
+                                    std::vector<CornerObservation>& c_z) = 0;
     virtual void reset() = 0;
 
     virtual void blueGoalieReset() = 0;
