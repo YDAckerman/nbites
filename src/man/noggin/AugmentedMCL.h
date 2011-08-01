@@ -1,9 +1,14 @@
 #ifndef AUGMENTED_MCL_H
 #define AUGMENTED_MCL_H
 
-#include "ParticleFilter.h"
+#ifdef SIMULATOR
+#include "CommonStructs.h"
+#else
 #include "Observation.h"
 #include "EKFStructs.h"
+#endif
+
+#include "ParticleFilter.h"
 #include "LocSystem.h"
 #include "NBMath.h"
 
@@ -12,12 +17,7 @@ static const float ALPHA_FAST = 0.2f;
 static const float ALPHA_SLOW = 0.05f;
 
 
-class AugmentedMCL : public ParticleFilter<PoseEst, 
-                                           MotionModel, 
-                                           std::vector<VisualMeasurement>,
-                                           PF::PoseDimensions, 
-                                           PF::TwoMeasurement>, 
-                     LocSystem
+class AugmentedMCL : public ParticleFilter<PoseEst, PointObservation, CornerObservation, MotionModel, PF::PoseDimensions>, public LocSystem
 {
  public:
     /**
@@ -35,9 +35,9 @@ class AugmentedMCL : public ParticleFilter<PoseEst,
      */
     virtual ~AugmentedMCL();
 
-    void updateLocalization(const MotionModel& u_t,
-			    const std::vector<PointObservation>& pt_z,
-			    const std::vector<CornerObservation>& c_z);
+    void updateLocalization(MotionModel &u_t,
+			    std::vector<PointObservation> &pt_z,
+			    std::vector<CornerObservation> &c_z);
 
     /**
      * Reset.
@@ -135,8 +135,10 @@ class AugmentedMCL : public ParticleFilter<PoseEst,
      * @return A new predicted pose based on current and previous information.
      */
     PoseEst prediction(MotionModel u_t, PoseEst x_t_1);
-    float measurementUpdate(std::vector<std::vector<VisualMeasurement> > z_t,
+    float measurementUpdate(std::vector<PointObservation> &z1_t,
+			    std::vector<CornerObservation> &z2_t,
 			    PoseEst x_t);
+    std::vector<Particle<PoseEst> > resample(std::vector<Particle<PoseEst> > X_t_bar);
 
     /**
      *methods to determine new position estimates and variances
@@ -151,7 +153,7 @@ class AugmentedMCL : public ParticleFilter<PoseEst,
 
 
     template <class ObservationType, class LandmarkType>
-    float measurementUpdate(std::vector<ObservationType> z_t, PoseEst x_t);
+    float measurementUpdate(std::vector<ObservationType> &z_t, PoseEst x_t);
     
     int fieldWidth;
     int fieldHeight;
@@ -182,7 +184,7 @@ float AugmentedMCL::findCorrespondence(ObservationType& z,
 }
 
 template <class ObservationType, class LandmarkType>
-float AugmentedMCL::measurementUpdate(std::vector<ObservationType> z_t, PoseEst x_t)
+float AugmentedMCL::measurementUpdate(std::vector<ObservationType> &z_t, PoseEst x_t)
 {
     // Find the weight of all observations (including all possible landmarks if
     // the observation is ambiguous, then choose the observation with the

@@ -1,7 +1,7 @@
 #include "AugmentedMCL.h"
 
 AugmentedMCL::AugmentedMCL(int particles, int width, int height)
-    : ParticleFilter<PoseEst, MotionModel, std::vector<VisualMeasurement>, PF::PoseDimensions, PF::TwoMeasurement>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
+    : ParticleFilter<PoseEst, PointObservation, CornerObservation, MotionModel, PF::PoseDimensions>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
 {
     // Randomly (and uniformly?) distribute M particles over the entire
     // pose space initially.
@@ -13,16 +13,19 @@ AugmentedMCL::AugmentedMCL(int particles, int width, int height)
 	randomPose.y = (rand() % fieldHeight)*1.0f;
        	randomPose.h = ((rand() % 361)*1.0f)*TO_RAD;
 	randomPose.h = NBMath::subPIAngle(randomPose.h);
-	X_t.push_back(randomPose);
+	Particle<PoseEst> randomParticle(randomPose, 0.0f);
+	
+	X_t.push_back(randomParticle);
+
     }
 }
 
 AugmentedMCL::~AugmentedMCL()
 { }
 
-void AugmentedMCL::updateLocalization(const MotionModel& u_t,
-				      const std::vector<PointObservation>& pt_z,
-				      const std::vector<CornerObservation>& c_z)
+void AugmentedMCL::updateLocalization(MotionModel& u_t,
+				      std::vector<PointObservation>& pt_z,
+				      std::vector<CornerObservation>& c_z)
 {
     lastPointObservations = pt_z;
     lastCornerObservations = c_z;
@@ -31,14 +34,12 @@ void AugmentedMCL::updateLocalization(const MotionModel& u_t,
     if(lastPointObservations.size() == 0 && lastCornerObservations.size() == 0)
 	return;
    
-    // Kind of a hack to ... @todo explain
-    std::vector<std::vector<VisualMeasurement> > measurements;
-    measurements.push_back(pt_z);
-    measurements.push_back(c_z);
-
     std::vector<Particle<PoseEst> > X_t_1 = X_t;
 
-    std::vector<Particle<PoseEst> > X_t_bar = updateRule(X_t_1, u_t, measurements);
+    std::vector<Particle<PoseEst> > X_t_bar = updateRule(X_t_1,
+							 u_t,
+							 lastPointObservations,
+							 lastCornerObservations);
 
     w_slow += ALPHA_SLOW*(averageWeight - w_slow);
     w_fast += ALPHA_FAST*(averageWeight - w_fast);
@@ -99,20 +100,18 @@ PoseEst AugmentedMCL::prediction(MotionModel u_t, PoseEst x_t_1)
     return x_t_1;
 }
 
-float AugmentedMCL::measurementUpdate(std::vector<std::vector<VisualMeasurement> > z_t,
+float AugmentedMCL::measurementUpdate(std::vector<PointObservation> &z1_t,
+				      std::vector<CornerObservation> &z2_t,
 				      PoseEst x_t)
 {
-    std::vector<PointObservation> pt_z = z_t[0];
-    std::vector<CornerObservation> c_t = z_t[1];
-
     float pointWeight = 0.0f;
     float cornerWeight = 0.0f;
 
-    if(z_t.size() != 0)
-	pointWeight = measurementUpdate<PointObservation, PointLandmark>(pt_t, x_t);
+    if(z1_t.size() != 0)
+	pointWeight = measurementUpdate<PointObservation, PointLandmark>(z1_t, x_t);
 
-    if(c_t.size() != 0)
-	cornerWeight = measurementUpdate<CornerObservation, CornerLandmark>(c_t, x_t);
+    if(z2_t.size() != 0)
+	cornerWeight = measurementUpdate<CornerObservation, CornerLandmark>(z2_t, x_t);
 
     if(pointWeight > cornerWeight)
 	return pointWeight;
@@ -151,7 +150,9 @@ std::vector<Particle<PoseEst> > AugmentedMCL::resample(std::vector<Particle<Pose
 	    
 	    randomPose.h = NBMath::subPIAngle(randomPose.h);
 	    
-	    X_t.push_back(randomPose);
+	    Particle<PoseEst> randomParticle(randomPose, 0.0f);
+
+	    X_t.push_back(randomParticle);
 	}
 	// Otherwise, continue normal resampling process.
 	else
@@ -217,7 +218,7 @@ Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<P
 vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > X_t_bar)
 {
 
-  std::vector<Particle<PoseEst>> bestFitSubset;
+  std::vector<Particle<PoseEst> > bestFitSubset;
   Particle<PoseEst> particle_i;
   PoseEst pose_i;
 
@@ -334,7 +335,7 @@ float variance( std::vector<float> set)
 
 void AugmentedMCL::updateEstimates()
 {
-  std::vector<Particle<PoseEst>> bestFit = determineBestFitSubset(X_t)
+  std::vector<Particle<PoseEst> > bestFit = determineBestFitSubset(X_t)
   currentPoseEstimate = robustMeanEstimate(bestFit);
   currentPoseVariance = determineVariances(bestFit);
 }						    }
