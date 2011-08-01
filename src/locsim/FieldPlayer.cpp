@@ -12,14 +12,38 @@ FieldPlayer::~FieldPlayer()
 {
 }
 
+void FieldPlayer::nextFrame()
+{
+    // First, update the real position.
+    int prevX = trueX;
+    int prevY = trueY;
+    int prevH = trueHeading;
+    trueX += trueWalkVector.x;
+    trueY += trueWalkVector.y;
+    trueHeading = trueWalkVector.theta;
+
+    // Calculate simulated odometry measurements.
+    Odometry odo = odometry.estimateOdometry(trueWalkVector, prevX, prevY, prevH);
+
+    // Update the vision system and form lists of observed landmarks to feed
+    // to the localization system.
+
+}
+
 void FieldPlayer::movePlayer(WalkVector &vec)
 {
-    // @todo
+    // Advance the player one frame according to the provided vector.
+    trueX += vec.x;
+    trueY += vec.y;
+    trueHeading = vec.theta;
 }
 
 void FieldPlayer::movePlayer(Odometry &odo)
 {
-    // @todo
+    // Advance the player one frame according to the provided odometry.
+    trueX += odo.dx;
+    trueY += odo.dy;
+    trueHeading += odo.dtheta;
 }
 
 void FieldPlayer::draw(QGraphicsScene *field)

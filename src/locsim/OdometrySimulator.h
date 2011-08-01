@@ -14,10 +14,13 @@ public:
       * over one frame.
       *
       * @param vec The walk vector of the player.
+      * @param prevX The previous x position of the player.
+      * @param prevY The previous y position of the player.
+      * @param prevH The previous heading of the player.
       *
       * @return The simulated odometry measurement with noise.
       */
-    Odometry estimateOdometry(WalkVector &vec);
+    Odometry estimateOdometry(WalkVector &vec, int prevX, int prevY, int prevH);
 };
 
 #endif // ODOMETRYSIMULATOR_H

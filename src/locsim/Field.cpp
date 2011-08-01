@@ -1,7 +1,7 @@
 #include "Field.h"
 
 Field::Field(int fWidth, int fHeight, QWidget *parent)
-    : QWidget(parent), fieldWidth(fWidth), fieldHeight(fHeight)
+    : QWidget(parent), fieldWidth(fWidth), fieldHeight(fHeight), framesElapsed(0)
 {
     // Setup the field.
     field.setBackgroundBrush(Qt::green);
@@ -29,6 +29,14 @@ Field::~Field()
 void Field::addPlayer(FieldPlayer *player)
 {
     players.push_back(player);
+}
+
+void Field::nextFrame()
+{
+    framesElapsed++;
+
+    for(int i = 0; i < players.size(); ++i)
+        players[i]->nextFrame();
 }
 
 void Field::drawFieldLines()

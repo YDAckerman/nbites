@@ -8,8 +8,13 @@
 #ifndef LocSystem_h_DEFINED
 #define LocSystem_h_DEFINED
 #include <vector>
+
+#ifdef SIMULATOR
+#include "CommonStructs.h"
+#else
 #include "NogginStructs.h"
 #include "Observation.h"
+#endif
 
 class LocSystem
 {

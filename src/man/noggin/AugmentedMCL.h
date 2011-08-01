@@ -1,9 +1,14 @@
 #ifndef AUGMENTED_MCL_H
 #define AUGMENTED_MCL_H
 
-#include "ParticleFilter.h"
+#ifdef SIMULATOR
+#include "CommonStructs.h"
+#else
 #include "Observation.h"
 #include "EKFStructs.h"
+#endif
+
+#include "ParticleFilter.h"
 #include "LocSystem.h"
 #include "NBMath.h"
 

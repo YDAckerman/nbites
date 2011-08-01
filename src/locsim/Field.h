@@ -13,7 +13,7 @@ class Field : public QWidget
     ~Field();
 
     void addPlayer(FieldPlayer *player);
-    void updatePlayer(int team, int player, WalkVector &newWalk);
+    void nextFrame();
 
     void drawFieldLines();
 
@@ -27,6 +27,8 @@ private:
 
     int fieldWidth;
     int fieldHeight;
+
+    int framesElapsed;
 
     std::vector<FieldPlayer *> players;
 };

@@ -2,6 +2,7 @@
 #define SIMULATORWINDOW_H
 
 #include <QtGui/QMainWindow>
+#include <QGroupBox>
 #include "Field.h"
 #include "FieldPlayer.h"
 
@@ -21,6 +22,7 @@ public:
 
 private:
     Field *soccerField;
+    QGroupBox *playerInformation;
 };
 
 #endif // SIMULATORWINDOW_H
