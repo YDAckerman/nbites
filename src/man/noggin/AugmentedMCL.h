@@ -11,6 +11,7 @@
 static const float ALPHA_FAST = 0.2f;
 static const float ALPHA_SLOW = 0.05f;
 
+
 class AugmentedMCL : public ParticleFilter<PoseEst, 
                                            MotionModel, 
                                            std::vector<VisualMeasurement>,
@@ -120,7 +121,7 @@ class AugmentedMCL : public ParticleFilter<PoseEst,
     /**
      * Updates the current pose estimates and uncertainties.
      */
-    void updateEstimates();
+    
 
  private:
     /**
@@ -136,6 +137,18 @@ class AugmentedMCL : public ParticleFilter<PoseEst,
     PoseEst prediction(MotionModel u_t, PoseEst x_t_1);
     float measurementUpdate(std::vector<std::vector<VisualMeasurement> > z_t,
 			    PoseEst x_t);
+
+    /**
+     *methods to determine new position estimates and variances
+     */
+    void updateEstimates();
+    std::vector<Particle<PoseEst>> determineBestFitSubset(std::vector<Particle<PoseEst>> X_t_bar);
+    Particle<PoseEst> determineHeaviestParticle(std::vector<Particle<PoseEst>> X_t_bar);
+    PoseEst robustMeanEstimate( std::vector<Particle<PoseEst>> bestFit);
+    PoseEst determineVariances( std::vector<Particle<PoseEst>> bestFit);
+    float variance( std::vector<float> set );
+
+
 
     template <class ObservationType, class LandmarkType>
     float measurementUpdate(std::vector<ObservationType> z_t, PoseEst x_t);
@@ -173,12 +186,12 @@ float AugmentedMCL::measurementUpdate(std::vector<ObservationType> z_t, PoseEst 
 {
     // Find the weight of all observations (including all possible landmarks if
     // the observation is ambiguous, then choose the observation with the
-    // highest weight.
+    // highest weight. @TODO: This might not be the best method, we may instead choose
+    // to use some sort of average or a top n best average. For now this will be fine.
     float maxWeight = 0.0f;
     float w = 0.0f;
     for(int i = 0; i < z_t.size(); ++i)
     {
-	std::vector<ObservationType> landmarkPossibilies;
 	    
 	for(int j = 0; j < z_t[i].getNumPossibilities(); ++j)
 	{
