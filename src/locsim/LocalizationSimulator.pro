@@ -28,7 +28,8 @@ HEADERS  += simulatorwindow.h \
     ../man/include/NBMath.h \
     ../man/noggin/ParticleFilter.h \
     ../man/noggin/LocSystem.h \
-    ../man/noggin/AugmentedMCL.h
+    ../man/noggin/AugmentedMCL.h \
+    FieldLandmark.h
 
 INCLUDEPATH += "../man/include"
 INCLUDEPATH += "../man/noggin"
