@@ -10,16 +10,16 @@ OdometrySimulator::~OdometrySimulator()
 
 
 /**
-  * Method to take a true odometry vectory and rotation and return a noise
+  * Method to take a true odometry and return a noise
   * vector approximate to be used by the simulated robot.
   */
 
-Odometry OdometrySimulator::estimateOdometry(Odometry &vec, int prevX, int prevY, int prevH)
+Odometry OdometrySimulator::estimateOdometry(Odometry &vec)
 {
     float x_n =  vec.x  + sampleNormalDistribution(std::sqrt(vec.x));
     float y_n =  vec.y  + sampleNormalDistribution(std::sqrt(vec.y));
     float theta_n =  vec.theta + sampleNormalDistribution(std::sqrt(vec.theta))
-    return Odometry(0, 0, 0);
+    return Odometry(x_n, y_n, theta_n);
 }
 /**
   * Method to sample a value from a normal distribution with mean 0 and

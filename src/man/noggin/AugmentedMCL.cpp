@@ -1,9 +1,17 @@
 #include "AugmentedMCL.h"
 
 AugmentedMCL::AugmentedMCL(int particles, int width, int height)
-    : ParticleFilter<PoseEst, PointObservation, CornerObservation, MotionModel, PF::PoseDimensions>(particles), fieldWidth(width), fieldHeight(height), lastOdo(0, 0, 0)
+    : ParticleFilter<PoseEst, 
+		     PointObservation, 
+		     CornerObservation, 
+		     MotionModel,
+		     PF::PoseDimensions>(particles), 
+      fieldWidth(width), 
+      fieldHeight(height), 
+      lastOdo(0, 0, 0)
 {
-    // Randomly (and uniformly?) distribute M particles over the entire
+    // Randomly (and uniformly?) distribute M 
+    // particles over the entire
     // pose space initially.
     srand(time(0));
     for(int i = 0; i < M; ++i)
@@ -23,23 +31,27 @@ AugmentedMCL::AugmentedMCL(int particles, int width, int height)
 AugmentedMCL::~AugmentedMCL()
 { }
 
-void AugmentedMCL::updateLocalization(MotionModel& u_t,
-				      std::vector<PointObservation>& pt_z,
-				      std::vector<CornerObservation>& c_z)
+void AugmentedMCL::updateLocalization(
+		   MotionModel& u_t,
+		   std::vector<PointObservation>& pt_z,
+		   std::vector<CornerObservation>& c_z)
 {
     lastPointObservations = pt_z;
     lastCornerObservations = c_z;
 
-    // If are no new observations, do not update localization.
-    if(lastPointObservations.size() == 0 && lastCornerObservations.size() == 0)
+    // If are no new observations, 
+    // do not update localization.
+    if(lastPointObservations.size() == 0 
+       && lastCornerObservations.size() == 0)
 	return;
    
     std::vector<Particle<PoseEst> > X_t_1 = X_t;
 
-    std::vector<Particle<PoseEst> > X_t_bar = updateRule(X_t_1,
-							 u_t,
-							 lastPointObservations,
-							 lastCornerObservations);
+    std::vector<Particle<PoseEst> > X_t_bar = updateRule(
+					       X_t_1,
+					       u_t,
+					       lastPointObservations,
+					       lastCornerObservations);
 
     w_slow += ALPHA_SLOW*(averageWeight - w_slow);
     w_fast += ALPHA_FAST*(averageWeight - w_fast);
@@ -82,14 +94,18 @@ void AugmentedMCL::resetLocTo(float x, float y, float h)
      */
 }
 
-PoseEst AugmentedMCL::prediction(MotionModel u_t, PoseEst x_t_1)
+PoseEst AugmentedMCL::prediction(
+		      MotionModel u_t, 
+		      PoseEst x_t_1)
 {
     // Update with last odometry.
     lastOdo = u_t;
 
 
-    // @todo IMPORTANT these variances are wrong! But if the gait is going to 
-    // change soon, we should remeasure variances and adjust accordingly.
+    // @todo IMPORTANT these variances are 
+    // wrong! But if the gait is going to 
+    // change soon, we should remeasure 
+    // variances and adjust accordingly.
     u_t.deltaF -= sampleNormalDistribution(std::fabs(u_t.deltaF));
     u_t.deltaL -= sampleNormalDistribution(std::fabs(u_t.deltaL));
     u_t.deltaR -= sampleNormalDistribution(std::fabs(u_t.deltaR));
@@ -100,26 +116,35 @@ PoseEst AugmentedMCL::prediction(MotionModel u_t, PoseEst x_t_1)
     return x_t_1;
 }
 
-float AugmentedMCL::measurementUpdate(std::vector<PointObservation> &z1_t,
-				      std::vector<CornerObservation> &z2_t,
-				      PoseEst x_t)
+float AugmentedMCL::measurementUpdate(
+		    std::vector<PointObservation> &z1_t,
+		    std::vector<CornerObservation> &z2_t,
+		    PoseEst x_t)
 {
     float pointWeight = 0.0f;
     float cornerWeight = 0.0f;
 
     if(z1_t.size() != 0)
-	pointWeight = measurementUpdate<PointObservation, PointLandmark>(z1_t, x_t);
+      {
+	pointWeight = measurementUpdate<
+	                                  PointObservation, 
+	                                  PointLandmark>(z1_t, x_t);
+      }
 
     if(z2_t.size() != 0)
-	cornerWeight = measurementUpdate<CornerObservation, CornerLandmark>(z2_t, x_t);
-
+      {
+	cornerWeight = measurementUpdate<
+	                                  CornerObservation, 
+					  CornerLandmark>(z2_t, x_t);
+      }
     if(pointWeight > cornerWeight)
 	return pointWeight;
     else 
 	return cornerWeight;
 }
 
-std::vector<Particle<PoseEst> > AugmentedMCL::resample(std::vector<Particle<PoseEst> > X_t_bar)
+std::vector<Particle<PoseEst> > AugmentedMCL::resample(
+				std::vector<Particle<PoseEst> > X_t_bar)
 {
     X_t.clear();
 
@@ -160,7 +185,8 @@ std::vector<Particle<PoseEst> > AugmentedMCL::resample(std::vector<Particle<Pose
 	    random = (rand() % 101)/100.0f;
 	    for(int i = 0; i < M; ++i)
 	    {
-		// Select a random particle based on the random number and the weights of each
+		// Select a random particle based on the 
+	        // random number and the weights of each
 		// particle.
 		if(random < X_t_bar[i].getWeight())
 		{
@@ -175,7 +201,8 @@ std::vector<Particle<PoseEst> > AugmentedMCL::resample(std::vector<Particle<Pose
     return X_t;
 }
 
-float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
+float AugmentedMCL::sampleNormalDistribution
+                      (float standardDeviation)
 {
     float sum = 0;
     for(int i = 0; i < 12; ++i)
@@ -187,14 +214,16 @@ float AugmentedMCL::sampleNormalDistribution(float standardDeviation)
     return 0.5*sum;
 }
 
-float AugmentedMCL::probabilityNormalDistribution(float a, float standardDeviation)
+float AugmentedMCL::probabilityNormalDistribution
+                     (float a, float standardDeviation)
 {
     return 1/std::sqrt(2*M_PI_FLOAT*standardDeviation*standardDeviation)
 	* std::exp(-(a*a)/(2*standardDeviation*standardDeviation));
 }
 
 
-Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<PoseEst> > &X_t_bar)
+Particle<PoseEst> AugmentedMCL::determineHeaviestParticle
+                     (std::vector<Particle<PoseEst> > &X_t_bar)
 {
   
     Particle<PoseEst> p(PoseEst(), 0.0f);
@@ -215,7 +244,8 @@ Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<P
 }
 
 
-std::vector<Particle<PoseEst> > AugmentedMCL::determineBestFitSubset(std::vector<Particle<PoseEst> > &X_t_bar)
+std::vector<Particle<PoseEst> > AugmentedMCL::determineBestFitSubset
+                             (std::vector<Particle<PoseEst> > &X_t_bar)
 {
 
   std::vector<Particle<PoseEst> > bestFitSubset;
@@ -249,7 +279,8 @@ std::vector<Particle<PoseEst> > AugmentedMCL::determineBestFitSubset(std::vector
   return bestFitSubset;
 }
 
-PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > &bestFit)
+PoseEst AugmentedMCL::robustMeanEstimate
+                   (std::vector<Particle<PoseEst> > &bestFit)
 {
 
   // this will house the total weight of the subset
@@ -288,7 +319,8 @@ PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > &bestF
 }
 
 
-PoseEst AugmentedMCL::determineVariances(std::vector<Particle<PoseEst> > &bestFit) 
+PoseEst AugmentedMCL::determineVariances
+                     (std::vector<Particle<PoseEst> > &bestFit) 
 {
   
     Particle<PoseEst> p_i(PoseEst(), 0.0f);
