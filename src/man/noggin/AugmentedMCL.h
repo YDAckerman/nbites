@@ -144,10 +144,10 @@ class AugmentedMCL : public ParticleFilter<PoseEst, PointObservation, CornerObse
      *methods to determine new position estimates and variances
      */
     void updateEstimates();
-    std::vector<Particle<PoseEst>> determineBestFitSubset(std::vector<Particle<PoseEst>> X_t_bar);
-    Particle<PoseEst> determineHeaviestParticle(std::vector<Particle<PoseEst>> X_t_bar);
-    PoseEst robustMeanEstimate( std::vector<Particle<PoseEst>> bestFit);
-    PoseEst determineVariances( std::vector<Particle<PoseEst>> bestFit);
+    std::vector< Particle< PoseEst > > determineBestFitSubset(std::vector< Particle< PoseEst > > X_t_bar);
+    Particle< PoseEst > determineHeaviestParticle(std::vector< Particle< PoseEst > > X_t_bar);
+    PoseEst robustMeanEstimate( std::vector<Particle<PoseEst> > bestFit);
+    PoseEst determineVariances( std::vector<Particle<PoseEst> > bestFit);
     float variance( std::vector<float> set );
 
 

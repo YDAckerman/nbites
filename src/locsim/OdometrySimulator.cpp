@@ -8,8 +8,31 @@ OdometrySimulator::~OdometrySimulator()
 {
 }
 
+/**
+  * Method to take a true odometry vectory and rotation and return a noise
+  * vector approximate to be used by the simulated robot.
+  */
 Odometry OdometrySimulator::estimateOdometry(WalkVector &vec, int prevX, int prevY, int prevH)
 {
-// @todo
+    float x_n =  vec.x  + sampleNormalDistribution(std::sqrt(vec.x));
+    float y_n =  vec.y  + sampleNormalDistribution(std::sqrt(vec.y));
+    float theta_n =  vec.theta + sampleNormalDistribution(std::sqrt(vec.theta))
     return Odometry(0, 0, 0);
+}
+/**
+  * Method to sample a value from a normal distribution with mean 0 and
+  * variance standardDeviation^2. Appears also in AugmentedMCL.cpp, so
+  * at some point we should consolidate everything into one Probabilistic
+  * functions class. @todo
+  */
+float sampleNormalDistribution(float standardDeviation)
+{
+    float sum = 0;
+    for(int i = 0; i < 12; ++i)
+    {
+        // Generates a random value in the range [-b, b].
+        sum += rand() % 2*standardDeviation - standardDeviation;
+    }
+
+    return 0.5*sum;
 }

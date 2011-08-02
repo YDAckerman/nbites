@@ -239,7 +239,7 @@ vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > 
     {
       particle_i = X_t_bar[i];
       pose_i = curParticle.getState();
-      if(heaviestState.distanceTo(pose_i) < epsilon)
+      if(heaviestState.distanceTo(pose_i) < PF::epsilon)
 	{
 	  bestFitSubset.push_back(particle_i);
 	}
@@ -322,6 +322,7 @@ float variance( std::vector<float> set)
     {
       mean += set[i]; 
     }
+ 
   mean /= (float)count;
   
   for(int i = 0; i < count; ++i)
