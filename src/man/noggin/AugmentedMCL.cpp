@@ -47,7 +47,7 @@ void AugmentedMCL::updateLocalization(MotionModel& u_t,
     X_t = resample(X_t_bar);
 
     // Make and update estimates.
-    // @todo
+    updateEstimates();
 }
 
 void AugmentedMCL::reset()
@@ -86,6 +86,7 @@ PoseEst AugmentedMCL::prediction(MotionModel u_t, PoseEst x_t_1)
 {
     // Update with last odometry.
     lastOdo = u_t;
+
 
     // @todo IMPORTANT these variances are wrong! But if the gait is going to 
     // change soon, we should remeasure variances and adjust accordingly.
@@ -192,7 +193,149 @@ float AugmentedMCL::probabilityNormalDistribution(float a, float standardDeviati
 	* std::exp(-(a*a)/(2*standardDeviation*standardDeviation));
 }
 
-void AugmentedMCL::updateEstimates()
+
+Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<PoseEst> > X_t_bar)
 {
+  
+  Particle<PoseEst> p;
+  float maxWeight = 0;
+  float weight;
+  for(int i = 0; i < M; ++i)
+    {
+      weight = X_t_bar[i].getWeight
+      
+      if(weight > maxWeight){
+	maxWeight = weight;
+	p = X_t_bar[i];
+      }
+    }
+  
+  return p;
 
 }
+
+
+vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > X_t_bar)
+{
+
+  std::vector<Particle<PoseEst> > bestFitSubset;
+  Particle<PoseEst> particle_i;
+  PoseEst pose_i;
+
+
+  // get the best particle and its weight from the 
+  // particle set
+  Particle<PoseEst> p = determineHeaviestParticle(X_t_bar);
+  PoseEst heaviestState = p.getState();
+  
+
+  // loop through all particles, finding those within 
+  // epsilon distance (euclidean metric @TODO: consider
+  // mahalanobis distance) from the 'best' particle, then
+  // add their poseEst to the poseEstimates vector and
+  // their weights to the poseEstimatesWeights vector and
+  // the total subset weight variable.
+  for(int i = 0; i < M; ++i)
+    {
+      particle_i = X_t_bar[i];
+      pose_i = curParticle.getState();
+      if(heaviestState.distanceTo(pose_i) < epsilon)
+	{
+	  bestFitSubset.push_back(particle_i);
+	}
+    }
+
+  return bestFitSubset;
+}
+
+PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > bestFit)
+{
+
+  // this will house the total weight of the subset
+  // and the temporary particle
+  float total = 0.0f;
+  Particle<PoseEst> p_i;
+
+  for(int i = 0; i < bestFit.size(); ++i)
+    {
+      total += bestFit.size[i].getWeight();
+    }
+
+  // initialize a new poseEst to be 'empty'
+  PoseEst bestEst(0,0,0);
+ 
+  // loop through poseEstimates and add
+  // a fraction of each pose based on the 
+  // its weight relative to the total subset
+  // weight. This is a slight modification from
+  // the method described in Probabilistic 
+  // Robotics. There they suggest simply multiplying
+  // by the weight, so if our pose is (423,64,pi/2)
+  // and our weight is .79, we'd add .79(423,64,pi/2)
+  // to our best estimate. It makes more sense to me
+  // to do it our way, but I could very easily be
+  // mistaken. -Yoni Ackerman July, 2011.
+  for(int i = 0; i < bestFit.size(); ++i)
+    {
+      p_i = bestFit[i]
+      float weight = p_i.getWeight / total;
+      bestEst += p_i.getState() * weight;
+    }
+
+  bestEst.h = NBMath::subPIAngle(bestEst.h);
+  return bestEst;
+}
+
+
+PoseEst determineVariances(std::vector<Particle<PoseEst> > bestFit) 
+{
+  
+  Particle<PoseEst> p_i;
+  PoseEst pose_i;
+  std::vector<float> X_subset;
+  std::vector<float> Y_subset;
+  std::vector<float> H_subset;
+  
+  for(int i = 0; i < bestFit.size(); ++i)
+    {
+      p_i = bestFit[i];
+      pose_i = p_i.getState();
+
+      X_subset.push_back(pose_i.x);
+      Y_subset.push_back(pose_i.y);
+      H_subset.push_back(pose_i.h);
+    }
+  
+  PoseEst varEst(variance(X_subset),
+		 variance(Y_subset),
+		 variance(H_subset)
+		 );
+  return varEst;
+}
+ 
+float variance( std::vector<float> set)
+{
+  float mean = 0;
+  float variance = 0;
+  int count = set.size();
+  for(int i = 0; i < count, ++i)
+    {
+      mean += set[i]; 
+    }
+  mean /= (float)count;
+  
+  for(int i = 0; i < count; ++i)
+    {
+      variance += (set[i] - mean)*(set[i] - mean);
+    }
+  
+  return variance / (float) max
+
+}
+
+void AugmentedMCL::updateEstimates()
+{
+  std::vector<Particle<PoseEst> > bestFit = determineBestFitSubset(X_t)
+  currentPoseEstimate = robustMeanEstimate(bestFit);
+  currentPoseVariance = determineVariances(bestFit);
+}						    }

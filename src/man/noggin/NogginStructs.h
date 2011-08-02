@@ -30,6 +30,13 @@ public:
     float y;
     float h;
 
+    void operator* (const float m)
+    {
+      x = x*m;
+      y = y*m;
+      h = h*m;
+    }
+
     PoseEst operator+ (const PoseEst o)
         {
             return PoseEst(o.x + x,
@@ -70,8 +77,15 @@ public:
         {
             return o << "(" << c.x << ", " << c.y << ", " << c.h << ")";
         }
-
-
+    
+    float distanceTo( const PoseEst o)
+    {
+      float d_y = y - o.y;
+      float d_x = x - o.x;
+      float d_h = subPIAngle(h - o.h);
+      
+      return sqrt( d_y*d_y + d_x*d_x + d_h*d_h ); 
+    }
 };
 
 /**
