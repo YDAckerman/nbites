@@ -3,6 +3,8 @@
 
 #include "../../man/noggin/LocSystem.h"
 #include "AugmentedMCL.h"
+#include "CommonStructs.h"
+#include "FieldParticle.h"
 #include <vector>
 
 class LocalizationSimulator
@@ -11,8 +13,8 @@ public:
     LocalizationSimulator();
     ~LocalizationSimulator();
 
-    void updateLocalization(std::vector<PointObservation> pointObs,
-                            std::vector<CornerObservation> cornerObs,
+    void updateLocalization(std::vector<PointObservation> &pointObs,
+                            std::vector<CornerObservation> &cornerObs,
                             Odometry &odometry);
 
     int getXEst() const { return xEst; }
@@ -33,6 +35,8 @@ private:
     int xUncert;
     int yUncert;
     int hUncert;
+
+    std::vector<FieldParticle> particles;
 };
 
 #endif // LOCALIZATIONSIMULATOR_H

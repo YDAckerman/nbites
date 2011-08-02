@@ -94,7 +94,7 @@ class ParticleFilter
      * @return The current updated state.
      */
     virtual State prediction(Control u_t, State x_t_1) = 0;
-    
+
 
     /**
      * Finds the weight (importance factor) of the given state according to the probability
@@ -118,6 +118,11 @@ class ParticleFilter
      * @return The resampled set of particles from the set X_t_bar.
      */
     virtual ParticleSet resample(ParticleSet X_t_bar);
+
+    /**
+      * @return The particle set.
+      */
+    ParticleSet getParticleSet() const { return X_t; }
 
  protected:
     ParticleSet X_t;

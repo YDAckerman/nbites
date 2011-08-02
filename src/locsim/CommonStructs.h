@@ -11,36 +11,15 @@ using namespace NBMath;
 static const double TO_RADIANS = PI / 180;
 static const double TO_DEGREES = 180 / PI;
 
-struct WalkVector
-{
-    WalkVector(int _x, int _y, int _mag)
-        : x(_x), y(_y), magnitude(_mag)
-    {
-        theta = std::atan2(y, x) * TO_DEGREES;
-    }
-
-    WalkVector(int _mag, int _theta)
-        : magnitude(_mag), theta(_theta)
-    {
-        x = magnitude * std::cos(theta * TO_RADIANS);
-        y = magnitude * std::sin(theta * TO_RADIANS);
-    }
-
-    WalkVector()
-        : x(0), y(0), magnitude(0), theta(0)
-    {
-    }
-
-    int x;
-    int y;
-    int magnitude;
-    int theta;
-};
-
 struct Odometry
 {
     Odometry(int _dx, int _dy, int _dtheta)
         : dx(_dx), dy(_dy), dtheta(_dtheta)
+    {
+    }
+
+    Odometry()
+        : dx(0), dy(0), dtheta(0)
     {
     }
 
@@ -102,41 +81,63 @@ public:
     float h;
 
     PoseEst operator+ (const PoseEst o)
-        {
-            return PoseEst(o.x + x,
-                           o.y + y,
-                           o.h + h);
-        }
-    void operator+= (const PoseEst o)
-        {
-            x += o.x;
-            y += o.y;
-            h += o.h;
-        }
+    {
+        return PoseEst(o.x + x,
+                       o.y + y,
+                       o.h + h);
+    }
+
+    PoseEst operator* (const float m)
+    {
+        x = x*m;
+        y = y*m;
+        h = h*m;
+
+        return PoseEst(x, y, h);
+    }
+
+    PoseEst& operator+= (const PoseEst o)
+    {
+        x += o.x;
+        y += o.y;
+        h += o.h;
+
+        return *this;
+    }
+
     PoseEst operator+ (const MotionModel u_t)
-        {
-            // Translate the relative change into the global coordinate system
-            // And add that to the current estimate
-            float sinh, cosh;
-            sincosf(h, &sinh, &cosh);
-            return PoseEst(x + u_t.deltaF * cosh -
-                           u_t.deltaL * sinh,
-                           y + u_t.deltaF * sinh +
-                           u_t.deltaL * cosh,
-                           h + u_t.deltaR);
-        }
-    void operator+= (const MotionModel u_t)
-        {
-            float sinh, cosh;
-            sincosf(h, &sinh, &cosh);
+    {
+        // Translate the relative change into the global coordinate system
+        // And add that to the current estimate
+        float sinh, cosh;
+        sincosf(h, &sinh, &cosh);
+        return PoseEst(x + u_t.deltaF * cosh -
+                       u_t.deltaL * sinh,
+                       y + u_t.deltaF * sinh +
+                       u_t.deltaL * cosh,
+                       h + u_t.deltaR);
+    }
 
-            // Translate the relative change into the global coordinate system
-            // And add that to the current estimate
-            x += u_t.deltaF * cosh - u_t.deltaL * sinh;
-            y += u_t.deltaF * sinh + u_t.deltaL * cosh;
-            h += u_t.deltaR;
-        }
+    void operator+= (const MotionModel u_t)       
+    {
+        float sinh, cosh;
+        sincosf(h, &sinh, &cosh);
 
+        // Translate the relative change into the global coordinate system
+        // And add that to the current estimate
+        x += u_t.deltaF * cosh - u_t.deltaL * sinh;
+        y += u_t.deltaF * sinh + u_t.deltaL * cosh;
+        h += u_t.deltaR;
+    }
+
+    float distanceTo( const PoseEst o)
+    {
+      float d_y = y - o.y;
+      float d_x = x - o.x;
+      float d_h = subPIAngle(h - o.h);
+
+      return sqrt( d_y*d_y + d_x*d_x + d_h*d_h );
+    }
     friend std::ostream& operator<< (std::ostream &o, const PoseEst &c)
         {
             return o << "(" << c.x << ", " << c.y << ", " << c.h << ")";

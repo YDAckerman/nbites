@@ -30,11 +30,13 @@ public:
     float y;
     float h;
 
-    void operator* (const float m)
+    PoseEst operator* (const float m)
     {
       x = x*m;
       y = y*m;
       h = h*m;
+
+      return PoseEst(x, y, h);
     }
 
     PoseEst operator+ (const PoseEst o)
@@ -43,11 +45,13 @@ public:
                            o.y + y,
                            o.h + h);
         }
-    void operator+= (const PoseEst o)
+    PoseEst& operator+= (const PoseEst o)
         {
             x += o.x;
             y += o.y;
             h += o.h;
+
+	    return *this;
         }
     PoseEst operator+ (const MotionModel u_t)
         {
