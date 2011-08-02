@@ -38,8 +38,8 @@ public:
     void setEstimateY(int y) { estimateY = y; }
     void setEstimateHeading(int theta) { estimateHeading = theta; }
 
-    WalkVector getWalkVector() const { return trueWalkVector; }
-    void setWalkVector(WalkVector &vec) { trueWalkVector = vec; }
+    Odometry getWalkOdometry() const { return walkOdometry; }
+    void setWalkOdometry(Odometry &odo) { walkOdometry = odo; }
 
     /**
       * Advances the player one frame forward in time. Updates the player
@@ -50,7 +50,6 @@ public:
       */
     void nextFrame();
 
-    void movePlayer(WalkVector &vec);
     void movePlayer(Odometry &odo);
 
     void draw(QGraphicsScene *field);
@@ -80,7 +79,7 @@ protected:
     int trueY;
     int trueHeading;
 
-    WalkVector trueWalkVector;
+    Odometry walkOdometry;
 
     int estimateX;
     int estimateY;

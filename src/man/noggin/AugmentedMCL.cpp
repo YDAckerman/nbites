@@ -194,20 +194,20 @@ float AugmentedMCL::probabilityNormalDistribution(float a, float standardDeviati
 }
 
 
-Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<PoseEst> > X_t_bar)
+Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<PoseEst> > &X_t_bar)
 {
   
-  Particle<PoseEst> p;
-  float maxWeight = 0;
-  float weight;
-  for(int i = 0; i < M; ++i)
+    Particle<PoseEst> p(PoseEst(), 0.0f);
+    float maxWeight = 0;
+    float weight;
+    for(int i = 0; i < M; ++i)
     {
-      weight = X_t_bar[i].getWeight
+	weight = X_t_bar[i].getWeight();
       
-      if(weight > maxWeight){
-	maxWeight = weight;
-	p = X_t_bar[i];
-      }
+	    if(weight > maxWeight){
+		maxWeight = weight;
+		p = X_t_bar[i];
+	    }
     }
   
   return p;
@@ -215,11 +215,11 @@ Particle<PoseEst> AugmentedMCL::determineHeaviestParticle(std::vector<Particle<P
 }
 
 
-vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > X_t_bar)
+std::vector<Particle<PoseEst> > AugmentedMCL::determineBestFitSubset(std::vector<Particle<PoseEst> > &X_t_bar)
 {
 
   std::vector<Particle<PoseEst> > bestFitSubset;
-  Particle<PoseEst> particle_i;
+  Particle<PoseEst> particle_i(PoseEst(), 0.0f);
   PoseEst pose_i;
 
 
@@ -238,8 +238,8 @@ vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > 
   for(int i = 0; i < M; ++i)
     {
       particle_i = X_t_bar[i];
-      pose_i = curParticle.getState();
-      if(heaviestState.distanceTo(pose_i) < epsilon)
+      pose_i = particle_i.getState();
+      if(heaviestState.distanceTo(pose_i) < PF::epsilon)
 	{
 	  bestFitSubset.push_back(particle_i);
 	}
@@ -248,17 +248,17 @@ vector<Particle<PoseEst> determineBestFitSubset(std::vector<Particle<PoseEst> > 
   return bestFitSubset;
 }
 
-PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > bestFit)
+PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > &bestFit)
 {
 
   // this will house the total weight of the subset
   // and the temporary particle
   float total = 0.0f;
-  Particle<PoseEst> p_i;
+  Particle<PoseEst> p_i(PoseEst(), 0.0f);
 
   for(int i = 0; i < bestFit.size(); ++i)
     {
-      total += bestFit.size[i].getWeight();
+      total += bestFit[i].getWeight();
     }
 
   // initialize a new poseEst to be 'empty'
@@ -276,25 +276,25 @@ PoseEst AugmentedMCL::robustMeanEstimate( std::vector<Particle<PoseEst> > bestFi
   // to do it our way, but I could very easily be
   // mistaken. -Yoni Ackerman July, 2011.
   for(int i = 0; i < bestFit.size(); ++i)
-    {
-      p_i = bestFit[i]
-      float weight = p_i.getWeight / total;
-      bestEst += p_i.getState() * weight;
-    }
+  {
+      p_i = bestFit[i];
+      float weight = p_i.getWeight() / total;
+      bestEst += (p_i.getState() * weight);
+  }
 
   bestEst.h = NBMath::subPIAngle(bestEst.h);
   return bestEst;
 }
 
 
-PoseEst determineVariances(std::vector<Particle<PoseEst> > bestFit) 
+PoseEst AugmentedMCL::determineVariances(std::vector<Particle<PoseEst> > &bestFit) 
 {
   
-  Particle<PoseEst> p_i;
-  PoseEst pose_i;
-  std::vector<float> X_subset;
-  std::vector<float> Y_subset;
-  std::vector<float> H_subset;
+    Particle<PoseEst> p_i(PoseEst(), 0.0f);
+    PoseEst pose_i;
+    std::vector<float> X_subset;
+    std::vector<float> Y_subset;
+    std::vector<float> H_subset;
   
   for(int i = 0; i < bestFit.size(); ++i)
     {
@@ -313,12 +313,12 @@ PoseEst determineVariances(std::vector<Particle<PoseEst> > bestFit)
   return varEst;
 }
  
-float variance( std::vector<float> set)
+float AugmentedMCL::variance( std::vector<float> &set)
 {
   float mean = 0;
   float variance = 0;
   int count = set.size();
-  for(int i = 0; i < count, ++i)
+  for(int i = 0; i < count; ++i)
     {
       mean += set[i]; 
     }
@@ -329,13 +329,13 @@ float variance( std::vector<float> set)
       variance += (set[i] - mean)*(set[i] - mean);
     }
   
-  return variance / (float) max
+  return variance / (float) count;
 
 }
 
 void AugmentedMCL::updateEstimates()
 {
-  std::vector<Particle<PoseEst> > bestFit = determineBestFitSubset(X_t)
-  currentPoseEstimate = robustMeanEstimate(bestFit);
-  currentPoseVariance = determineVariances(bestFit);
-}						    }
+    std::vector<Particle<PoseEst> > bestFit = determineBestFitSubset(X_t);
+  currPoseEstimate = robustMeanEstimate(bestFit);
+  currPoseUncertainty = determineVariances(bestFit);
+}

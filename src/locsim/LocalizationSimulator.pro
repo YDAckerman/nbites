@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     OdometrySimulator.cpp \
     LocalizationSimulator.cpp \
     ../man/include/NBMath.cpp \
-    ../man/noggin/AugmentedMCL.cpp
+    ../man/noggin/AugmentedMCL.cpp \
+    FieldParticle.cpp
 
 HEADERS  += simulatorwindow.h \
     Field.h \
@@ -29,7 +30,8 @@ HEADERS  += simulatorwindow.h \
     ../man/noggin/ParticleFilter.h \
     ../man/noggin/LocSystem.h \
     ../man/noggin/AugmentedMCL.h \
-    FieldLandmark.h
+    FieldLandmark.h \
+    FieldParticle.h
 
 INCLUDEPATH += "../man/include"
 INCLUDEPATH += "../man/noggin"

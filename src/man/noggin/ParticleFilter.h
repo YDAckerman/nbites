@@ -94,17 +94,6 @@ class ParticleFilter
      * @return The current updated state.
      */
     virtual State prediction(Control u_t, State x_t_1) = 0;
-    
-    /**
-     * Methods to determine a pose estimate from a particle
-     * Set using the Robust Mean. Requires knowledge of the  
-     * Heaviest particle.
-     *
-     * @param X_t_bar particle set in question 
-     * @return a state estimate
-     */
-    State robustMeanEstimate(ParticleSet X_t_bar) = 0;
-    Particle determineHeaviestParticle(ParticleSet X_t_bar) = 0;
 
     /**
      * Finds the weight (importance factor) of the given state according to the probability
@@ -128,6 +117,11 @@ class ParticleFilter
      * @return The resampled set of particles from the set X_t_bar.
      */
     virtual ParticleSet resample(ParticleSet X_t_bar);
+
+    /**
+      * @return The particle set.
+      */
+    ParticleSet getParticleSet() const { return X_t; }
 
  protected:
     ParticleSet X_t;

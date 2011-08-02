@@ -18,24 +18,16 @@ void FieldPlayer::nextFrame()
     int prevX = trueX;
     int prevY = trueY;
     int prevH = trueHeading;
-    trueX += trueWalkVector.x;
-    trueY += trueWalkVector.y;
-    trueHeading = trueWalkVector.theta;
+    trueX += walkOdometry.dx;
+    trueY += walkOdometry.dy;
+    trueHeading += walkOdometry.dtheta;
 
     // Calculate simulated odometry measurements.
-    Odometry odo = odometry.estimateOdometry(trueWalkVector, prevX, prevY, prevH);
+    Odometry odo = odometry.estimateOdometry(walkOdometry, prevX, prevY, prevH);
 
     // Update the vision system and form lists of observed landmarks to feed
     // to the localization system.
 
-}
-
-void FieldPlayer::movePlayer(WalkVector &vec)
-{
-    // Advance the player one frame according to the provided vector.
-    trueX += vec.x;
-    trueY += vec.y;
-    trueHeading = vec.theta;
 }
 
 void FieldPlayer::movePlayer(Odometry &odo)
