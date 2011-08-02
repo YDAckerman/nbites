@@ -4,6 +4,7 @@
 #include "CommonStructs.h"
 #include "FieldLandmark.h"
 
+static const int Beta = 30; 
 
 class VisionSimulator
 {
@@ -42,10 +43,12 @@ class VisionSimulator
     std::vector<FieldLandmark> landmarks
 			     );
 
-  template < class Observation>
+  template <class Observation>
     Observation addNoise( 
 		    Observation obs
 			  );
+
+  void detExtremes();
 
   std::vector<FieldLandmark> map;
   std::vector<CornerObservation>
@@ -55,7 +58,16 @@ class VisionSimulator
   int x;
   int y;
   int h;
-  
+
+  /**
+   * these house the extremes of our field of
+   * vision. They will be used to determine what
+   * landmarks we can see
+   */
+  int extreme_x1;
+  int extreme_x2;
+  int extreme_y1;
+  int extreme_y2;
   
 
 };
