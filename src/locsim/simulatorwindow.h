@@ -21,7 +21,7 @@ public:
     ~SimulatorWindow();
 
 private:
-    Field *soccerField;
+    QPointer<Field> soccerField;
     QGroupBox *playerInformation;
 };
 

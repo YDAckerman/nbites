@@ -18,10 +18,11 @@ SOURCES += main.cpp\
     LocalizationSimulator.cpp \
     ../man/include/NBMath.cpp \
     ../man/noggin/AugmentedMCL.cpp \
-    FieldParticle.cpp
+    FieldParticle.cpp \
+    FieldLandmark.cpp \
+    PlayerIndicator.cpp
 
 HEADERS  += simulatorwindow.h \
-    Field.h \
     FieldPlayer.h \
     OdometrySimulator.h \
     CommonStructs.h \
@@ -31,7 +32,9 @@ HEADERS  += simulatorwindow.h \
     ../man/noggin/LocSystem.h \
     ../man/noggin/AugmentedMCL.h \
     FieldLandmark.h \
-    FieldParticle.h
+    FieldParticle.h \
+    Field.h \
+    PlayerIndicator.h
 
 INCLUDEPATH += "../man/include"
 INCLUDEPATH += "../man/noggin"
