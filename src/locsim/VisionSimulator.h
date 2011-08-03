@@ -45,10 +45,11 @@ class VisionSimulator
 
   template <class Observation>
     Observation addNoise( 
-		    Observation obs
+		     Observation obs
 			  );
 
-  void detExtremes();
+  
+  
 
   std::vector<FieldLandmark> map;
   std::vector<CornerObservation>
@@ -59,15 +60,5 @@ class VisionSimulator
   int y;
   int h;
 
-  /**
-   * these house the extremes of our field of
-   * vision. They will be used to determine what
-   * landmarks we can see
-   */
-  int extreme_x1;
-  int extreme_x2;
-  int extreme_y1;
-  int extreme_y2;
   
-
 };

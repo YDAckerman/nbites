@@ -32,9 +32,9 @@ typedef enum
 {
     YGP,
     BGP,
+    CROSS,
     LCORNER,
-    TCORNER,
-    CROSS
+    TCORNER
 } VisualLandmarkType;
 
 //////////////////////////////////////////////////

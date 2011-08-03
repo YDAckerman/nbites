@@ -2,21 +2,21 @@
 
 VisionSimulator::VisionSimulator()
 {
-  map.push_back(FieldLandmark(LCORNER, 0, 0));
-  map.push_back(FieldLandmark(LCORNER, 0, 400));
-  map.push_back(FieldLandmark(LCORNER, 600, 0));
-  map.push_back(FieldLandmark(LCORNER, 600, 400));
-  map.push_back(FieldLandmark(LCORNER, 60, 90));
-  map.push_back(FieldLandmark(LCORNER, 60, 310));
-  map.push_back(FieldLandmark(LCORNER, 540, 90));
-  map.push_back(FieldLandmark(LCORNER, 540, 310));
+  map.push_back(FieldLandmark(LCORNER, 0, 0, 0));
+  map.push_back(FieldLandmark(LCORNER, 0, 400, 90));
+  map.push_back(FieldLandmark(LCORNER, 600, 0, -90));
+  map.push_back(FieldLandmark(LCORNER, 600, 400, 180));
+  map.push_back(FieldLandmark(LCORNER, 60, 90, -90));
+  map.push_back(FieldLandmark(LCORNER, 60, 310, 180));
+  map.push_back(FieldLandmark(LCORNER, 540, 90, 0));
+  map.push_back(FieldLandmark(LCORNER, 540, 310, 90));
 
-  map.push_back(FieldLandmark(TCORNER, 300, 0));
-  map.push_back(FieldLandmark(TCORNER, 300, 400));
-  map.push_back(FieldLandmark(TCORNER, 0, 90));
-  map.push_back(FieldLandmark(TCORNER, 0, 310));
-  map.push_back(FieldLandmark(TCORNER, 600, 90));
-  map.push_back(FieldLandmark(TCORNER, 600, 310));
+  map.push_back(FieldLandmark(TCORNER, 300, 0, -90));
+  map.push_back(FieldLandmark(TCORNER, 300, 400, 90));
+  map.push_back(FieldLandmark(TCORNER, 0, 90, 0));
+  map.push_back(FieldLandmark(TCORNER, 0, 310, 0));
+  map.push_back(FieldLandmark(TCORNER, 600, 90, 180));
+  map.push_back(FieldLandmark(TCORNER, 600, 310, 180));
 
   map.push_back(FieldLandmark(BGP, 0, 130));
   map.push_back(FieldLandmark(BGP, 0, 270));
@@ -37,7 +37,14 @@ VisionSimulator::updateVisionSim(
 			     int y,
 			     int h)
 {
+  /**
+   * clear out all the old
+   * observations
+   */
+  curCornerObs.clear();
+  curPointObs.clear();
   
+  // vector will hold visible landmarks
   std::vector<FieldLandmark> visLandmarks;
 
   /**
@@ -93,7 +100,7 @@ VisionSimulator::isVisible(
    */
   float i_rl = landmark.getX() - x;
   float j_rl = landmark.getY() - y;
-  float mag = std::sqrt(i_rl*i_rl + j_rl*j_rl)
+  float mag = std::sqrt(i_rl*i_rl + j_rl*j_rl);
 
   
   /**
@@ -120,3 +127,32 @@ VisionSimulator::isVisible(
   
 }
 			
+void
+determineObservations(
+	    std::vector<FieldLandmark> landmarks
+		      )
+{
+  float dist;
+  float bearing;
+  int bGoalCounter = 0;
+  int yGoalCounter = 0;
+  for(int i= 0; i < landmarks.size() )
+    {
+      /**
+       * determine the dist and bearing
+       * (if applicable).
+       */
+      
+      
+      int type = landmark[i].getType();
+      if( type == BGP){
+	++bGoalCounter;
+      }else if(type == YGP){
+	++yGoalCounter;
+      }
+
+      if( type < 4){
+      }
+    }
+}
+
