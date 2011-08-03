@@ -4,7 +4,7 @@
 #include "CommonStructs.h"
 #include "FieldLandmark.h"
 
-static const float BETA = 30.0f;
+static const float BETA = 30.0f; /*<degrees!>*/ 
 
 class VisionSimulator
 {
