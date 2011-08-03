@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     ../man/noggin/AugmentedMCL.cpp \
     FieldParticle.cpp \
     FieldLandmark.cpp \
-    PlayerIndicator.cpp
+    PlayerIndicator.cpp \
+    VisionSimulator.cpp
 
 HEADERS  += simulatorwindow.h \
     FieldPlayer.h \
@@ -34,7 +35,8 @@ HEADERS  += simulatorwindow.h \
     FieldLandmark.h \
     FieldParticle.h \
     Field.h \
-    PlayerIndicator.h
+    PlayerIndicator.h \
+    VisionSimulator.h
 
 INCLUDEPATH += "../man/include"
 INCLUDEPATH += "../man/noggin"
