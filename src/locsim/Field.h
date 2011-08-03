@@ -3,34 +3,42 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QTimer>
+#include <QPointer>
 #include <vector>
 #include "FieldPlayer.h"
 
 class Field : public QWidget
 {
+    Q_OBJECT
+
  public:
     Field(int fWidth, int fHeight, QWidget *parent = 0);
     ~Field();
 
-    void addPlayer(FieldPlayer *player);
-    void nextFrame();
-
     void drawFieldLines();
-
-    void drawFieldPlayers();
 
     void resetField();
 
+    FieldPlayer *getPlayer();
+
+    QPointer<QGraphicsScene> getField() { return field; }
+
+public slots:
+    void next();
+
 private:
-    QGraphicsScene field;
-    QGraphicsView view;
+    QPointer<QGraphicsScene> field;
+    QPointer<QGraphicsView> view;
 
     int fieldWidth;
     int fieldHeight;
 
     int framesElapsed;
 
-    std::vector<FieldPlayer *> players;
+    FieldPlayer *fieldPlayer;
+
+    QPointer<QTimer> timer;
 };
 
 #endif // FIELD_H

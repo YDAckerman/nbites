@@ -1,78 +1,85 @@
 #include "Field.h"
 
+#include <iostream>
+
 Field::Field(int fWidth, int fHeight, QWidget *parent)
     : QWidget(parent), fieldWidth(fWidth), fieldHeight(fHeight), framesElapsed(0)
 {
     // Setup the field.
-    field.setBackgroundBrush(Qt::green);
-    field.setSceneRect(0, 0, fieldWidth, fieldHeight);
+    field = new QGraphicsScene();
+    field->setBackgroundBrush(Qt::green);
+    field->setSceneRect(0, 0, fieldWidth, fieldHeight);
 
     // Draw field lines & landmarks.
     drawFieldLines();
 
-    // Draw players.
-    drawFieldPlayers();
-
     // Setup the view.
-    view.setParent(parent);
-    view.setScene(&field);
-    view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view.resize(fieldWidth, fieldHeight);
-    view.show();
+    view = new QGraphicsView(field, parent);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->resize(fieldWidth, fieldHeight);
+    view->show();
+
+    fieldPlayer = new FieldPlayer(100, 100, 30, "Annika", 1, 2, field);
+
+    timer = new QTimer(this);
+
+    connect(timer,
+            SIGNAL(timeout()),
+            this,
+            SLOT(next()));
+
+    timer->start(1000);
 }
 
 Field::~Field()
 {
 }
 
-void Field::addPlayer(FieldPlayer *player)
-{
-    players.push_back(player);
-}
-
-void Field::nextFrame()
+void Field::next()
 {
     framesElapsed++;
 
-    for(int i = 0; i < players.size(); ++i)
-        players[i]->nextFrame();
+    std::cout << "Next frame (" << framesElapsed << ")." << std::endl;
+
+    fieldPlayer->nextFrame();
+
+    //field->clear();
+
+    field->update();
 }
 
 void Field::drawFieldLines()
 {
     // Left & right sidelines.
-    field.addRect(0, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
-    field.addRect(595, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(0, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(595, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
 
     // Top & bottom sidelines.
-    field.addRect(0, 0, 600, 5, QPen(Qt::white), QBrush(Qt::white));
-    field.addRect(0, 395, 600, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(0, 0, 600, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(0, 395, 600, 5, QPen(Qt::white), QBrush(Qt::white));
 
     // Midline.
-    field.addRect(295, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
-    field.addEllipse(238, 140, 120, 120, QPen(QBrush(Qt::white), 5));
+    field->addRect(295, 0, 5, 400, QPen(Qt::white), QBrush(Qt::white));
+    field->addEllipse(238, 140, 120, 120, QPen(QBrush(Qt::white), 5));
 
     // Blue goal box & posts.
-    field.addRect(0, 80, 60, 5, QPen(Qt::white), QBrush(Qt::white));
-    field.addRect(0, 300, 60, 5, QPen(Qt::white), QBrush(Qt::white));
-    field.addRect(60, 80, 6, 225, QPen(Qt::white), QBrush(Qt::white));
-    field.addEllipse(QRect(2, 78, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
-    field.addEllipse(QRect(2, 298, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
+    field->addRect(0, 80, 60, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(0, 300, 60, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(60, 80, 6, 225, QPen(Qt::white), QBrush(Qt::white));
+    field->addEllipse(QRect(2, 78, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
+    field->addEllipse(QRect(2, 298, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
 
     // Yellow goal box & posts.
     // @todo.
 }
 
-void Field::drawFieldPlayers()
-{
-    for(int i = 0; i < players.size(); ++i)
-    {
-        players[i]->draw(&field);
-    }
-}
-
 void Field::resetField()
 {
 
+}
+
+FieldPlayer *Field::getPlayer()
+{
+    return fieldPlayer;
 }

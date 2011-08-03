@@ -3,7 +3,10 @@
 
 #include <string>
 #include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QPointer>
 #include "CommonStructs.h"
+#include "PlayerIndicator.h"
 #include "OdometrySimulator.h"
 //#include "VisionSimulator.h"
 #include "LocalizationSimulator.h"
@@ -11,7 +14,7 @@
 class FieldPlayer
 {
 public:
-    FieldPlayer(int x, int y, int theta, std::string name, int team, int player);
+    FieldPlayer(int x, int y, int theta, std::string name, int team, int player, QPointer<QGraphicsScene> field);
     ~FieldPlayer();
 
     std::string getName() const { return playerName; }
@@ -26,20 +29,22 @@ public:
     int getTrueY() const { return trueY; }
     int getTrueHeading() const { return trueHeading; }
 
-    void setTrueX(int x) { trueX = x; }
-    void setTrueY(int y) { trueY = y; }
-    void setTrueHeading(int theta) { trueHeading = theta; }
+    void setTrueX(int x) { trueX = x; truePlayer->setX(x); }
+    void setTrueY(int y) { trueY = y; truePlayer->setY(y); }
+    void setTrueHeading(int theta) { trueHeading = theta; truePlayer->setAngle(theta); }
 
     int getEstimateX() const { return estimateX; }
     int getEstimateY() const { return estimateY; }
     int getEstimateHeading() const { return estimateHeading; }
 
-    void setEstimateX(int x) { estimateX = x; }
-    void setEstimateY(int y) { estimateY = y; }
-    void setEstimateHeading(int theta) { estimateHeading = theta; }
+    void setEstimateX(int x) { estimateX = x; estimatePlayer->setX(x); }
+    void setEstimateY(int y) { estimateY = y; estimatePlayer->setY(y); }
+    void setEstimateHeading(int theta) { estimateHeading = theta; estimatePlayer->setAngle(theta); }
 
     Odometry getWalkOdometry() const { return walkOdometry; }
     void setWalkOdometry(Odometry &odo) { walkOdometry = odo; }
+
+    std::vector<FieldParticle *> getLocalizationParticles() const { return localization.getParticles(); }
 
     /**
       * Advances the player one frame forward in time. Updates the player
@@ -52,25 +57,11 @@ public:
 
     void movePlayer(Odometry &odo);
 
-    void draw(QGraphicsScene *field);
-
-    /**
-      * Draws the estimated player as a circle with a radius larger
-      * than that of the true player.
-      *
-      * @param field The graphics scene to draw to.
-      */
-    void drawEstimatedPlayer(QGraphicsScene *field);
-
-    /**
-      * Draws the true player as a circle with a radius smaller than
-      * that of the estimated player.
-      *
-      * @param field The graphics scene to draw to.
-      */
-    void drawTruePlayer(QGraphicsScene *field);
-
 protected:
+    OdometrySimulator odometry;
+    //VisionSimulator vision;
+    LocalizationSimulator localization;
+
     std::string playerName;
     int teamNumber;
     int playerNumber;
@@ -79,16 +70,15 @@ protected:
     int trueY;
     int trueHeading;
 
+    PlayerIndicator *truePlayer;
+
     Odometry walkOdometry;
 
     int estimateX;
     int estimateY;
     int estimateHeading;
 
-    OdometrySimulator odometry;
-    //VisionSimulator vision;
-    LocalizationSimulator localization;
-
+    PlayerIndicator *estimatePlayer;
 };
 
 #endif // FIELDPLAYER_H

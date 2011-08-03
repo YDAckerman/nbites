@@ -20,7 +20,9 @@ public:
       *
       * @return The simulated odometry measurement with noise.
       */
-    Odometry estimateOdometry(Odometry &vec, int prevX, int prevY, int prevH);
+    Odometry estimateOdometry(Odometry &vec);
+
+    float sampleNormalDistribution(float standardDeviation);
 };
 
 #endif // ODOMETRYSIMULATOR_H

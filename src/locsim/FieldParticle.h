@@ -2,9 +2,11 @@
 #define FIELDPARTICLE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QPainter>
 #include "CommonStructs.h"
 
-class FieldParticle
+class FieldParticle : public QGraphicsItem
 {
 public:
     FieldParticle();
@@ -21,7 +23,9 @@ public:
     void setH(int hPos) { h = hPos; }
     void setWeight(float w) { weight = w; }
 
-    void draw(QGraphicsScene *field);
+    QRectF boundingRect() const { return QRectF(x, y, 10, 10); }
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 private:
     int x;
