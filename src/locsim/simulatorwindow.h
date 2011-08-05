@@ -3,6 +3,8 @@
 
 #include <QtGui/QMainWindow>
 #include <QGroupBox>
+#include <QGridLayout>
+#include <QPushButton>
 #include "Field.h"
 #include "FieldPlayer.h"
 
@@ -22,7 +24,7 @@ public:
 
 private:
     QPointer<Field> soccerField;
-    QGroupBox *playerInformation;
+    QGroupBox *simulationControls;
 };
 
 #endif // SIMULATORWINDOW_H

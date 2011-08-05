@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QTimer>
 #include <QPointer>
+#include <QGridLayout>
 #include <vector>
 #include "FieldPlayer.h"
 

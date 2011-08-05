@@ -32,9 +32,9 @@ typedef enum
 {
     YGP,
     BGP,
+    CROSS,
     LCORNER,
-    TCORNER,
-    CROSS
+    TCORNER
 } VisualLandmarkType;
 
 //////////////////////////////////////////////////
@@ -230,7 +230,6 @@ public:
                 _sigma_b, LCORNER), visOrientation(_visOrientation),
         sigma_o(_sigma_o)
     {
-
         // Ensure that the sd is not zero (will cause errors later)
         if (sigma_o == 0.0)
         {

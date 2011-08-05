@@ -9,10 +9,6 @@ SimulatorWindow::SimulatorWindow(QWidget *parent)
     // Create the field.
     soccerField = new Field(FIELD_WIDTH, FIELD_HEIGHT, this);
 
-    // Add a test player.
-    //FieldPlayer *newPlayer = new FieldPlayer(100, 100, 30, "Annika", 1, 2, soccerField->getField());
-    //soccerField->setPlayer(newPlayer);
-
     Odometry newOdo(2, 0, 20);
     soccerField->getPlayer()->setWalkOdometry(newOdo);
 }

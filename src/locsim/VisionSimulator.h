@@ -49,6 +49,6 @@ private:
     int extreme_x2;
     int extreme_y1;
     int extreme_y2;
-
-
 };
+
+#endif // VISIONSIMULATOR_H

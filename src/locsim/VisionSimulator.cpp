@@ -39,9 +39,9 @@ void VisionSimulator::updateVision(int x,
     std::vector<FieldLandmark> visLandmarks;
 
     // update position
-    this.x = x;
-    this.y = y;
-    this.h = h;
+    this->x = x;
+    this->y = y;
+    this->h = h;
 
     // determine visible landmarks
     visLandmarks = detVisLandmarks();
@@ -67,42 +67,43 @@ std::vector<FieldLandmark> VisionSimulator::detVisLandmarks()
 
 bool VisionSimulator::isVisible(FieldLandmark landmark)
 {
-  /**
-   * create components of unit vector in the 
-   * direction of the robot's heading.
-   */
-  float i_u = std::cos(h);
-  float j_u = std::sin(h);
+    /**
+     * create components of unit vector in the
+     * direction of the robot's heading.
+     */
+    float i_u = std::cos(h);
+    float j_u = std::sin(h);
 
-  /**
-   * create components of the robot->landmark
-   * vector and determine its magnitude.
-   */
-  float i_rl = landmark.getX() - x;
-  float j_rl = landmark.getY() - y;
-  float mag = std::sqrt(i_rl*i_rl + j_rl*j_rl)
+    /**
+      * create components of the robot->landmark
+      * vector and determine its magnitude.
+      */
+    float i_rl = landmark.getX() - x;
+    float j_rl = landmark.getY() - y;
+    float mag = std::sqrt(i_rl*i_rl + j_rl*j_rl);
 
-  
-  /**
-   * Dot product!
-   */
-  float dot = i_rl*i + j_rl*j;
+    /**
+      * Dot product!
+      */
+    float dot = i_rl*i_u + j_rl*j_u;
 
-  /**
-   * Divide by the magnitude of the robot->
-   * landmark vector (since the other is 
-   * unit), and take the inverse cosine of the
-   * quotient to get the angle between the 
-   * vectors.
-   */
+    /**
+      * Divide by the magnitude of the robot->
+      * landmark vector (since the other is
+      * unit), and take the inverse cosine of the
+      * quotient to get the angle between the
+      * vectors.
+      */
+    float angle = NBMath::safe_acos(dot/mag);
 
-  float angle = NBMath::safe_acos(dot/mag);
-
-  /**
-   * if the angle is <= BETA, then the landmark
-   * is in the robots line of sight.
-   */
-
-  return BETA >= angle;
+    /**
+     * if the angle is <= BETA, then the landmark
+     * is in the robots line of sight.
+     */
+    return BETA >= angle;
 }
 
+void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks)
+{
+
+}
