@@ -140,10 +140,19 @@ determineObservations(
     {
       /**
        * determine the dist and bearing
-       * (if applicable).
        */
-      
-      
+      dist  = std::sqrt( (landmark[i].getX() - x)*
+			 (landmark[i].getX() - x) +
+			 (landmark[i].getY() - y)*
+			 (landmark[i].getY() - y) );
+      /**
+       * find the heading of the robot->landmark
+       * vector and subtract it from the robot's
+       * heading to determine bearing
+       */
+      bearing = h - NBMath::safe_acos( (landmark[i].getX() -
+					x)/dist );
+
       int type = landmark[i].getType();
       if( type == BGP){
 	++bGoalCounter;
@@ -155,4 +164,3 @@ determineObservations(
       }
     }
 }
-

@@ -59,6 +59,5 @@ class VisionSimulator
   int x;
   int y;
   int h;
-
   
 };

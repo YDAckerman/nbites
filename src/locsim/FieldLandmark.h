@@ -6,11 +6,12 @@
 class FieldLandmark
 {
 public:
-    FieldLandmark(VisualLandmarkType type, int x, int y);
+  FieldLandmark(VisualLandmarkType type, int x, int y, int orientation = -1);
     ~FieldLandmark();
 
     int getX() const { return xPos; }
     int getY() const { return yPos; }
+    int getO() const { return orientation; }
     VisualLandmarkType getType() const { return landmarkType; }
 
     void setX(int x) { xPos = x; }
@@ -21,6 +22,7 @@ protected:
     VisualLandmarkType landmarkType;
     int xPos;
     int yPos;
+    int orientation;
 };
 
 #endif // FIELDLANDMARK_H

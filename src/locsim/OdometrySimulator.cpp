@@ -1,5 +1,5 @@
 #include "OdometrySimulator.h"
-
+#include <boost/random
 OdometrySimulator::OdometrySimulator()
 {
 }
@@ -16,9 +16,9 @@ OdometrySimulator::~OdometrySimulator()
 
 Odometry OdometrySimulator::estimateOdometry(Odometry &vec)
 {
-    float x_n =  vec.dx  + sampleNormalDistribution(std::sqrt(vec.dx));
-    float y_n =  vec.dy  + sampleNormalDistribution(std::sqrt(vec.dy));
-    float theta_n =  vec.dtheta + sampleNormalDistribution(std::sqrt(vec.dtheta));
+  float x_n = vec.dx  + sampleNormalDistribution(0.33*(std::abs(vec.dx)));
+  float y_n = vec.dy  + sampleNormalDistribution(0.33*(std::abs(vec.dy)));
+  float theta_n = vec.dtheta + sampleNormalDistribution(0.33*(std::abs(vec.dtheta)));
     return Odometry(x_n, y_n, theta_n);
 }
 /**
@@ -33,7 +33,7 @@ float OdometrySimulator::sampleNormalDistribution(float standardDeviation)
     for(int i = 0; i < 12; ++i)
     {
         // Generates a random value in the range [-b, b].
-        sum += rand() % 2*standardDeviation - standardDeviation;
+      sum += rand() % (2*standardDeviation) - standardDeviation;
     }
 
     return 0.5*sum;
