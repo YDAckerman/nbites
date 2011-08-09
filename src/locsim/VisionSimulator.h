@@ -3,12 +3,13 @@
 
 #include "CommonStructs.h"
 #include "FieldLandmark.h"
+#include "Probability.h"
 
-static const float BETA = 30.0f; /*<degrees!>*/ 
+// Field of vision constant (in degrees!)
+static const float BETA = 30.0f;
 
 class VisionSimulator
 {
-
 public:
     VisionSimulator();
     ~VisionSimulator();
@@ -21,6 +22,8 @@ public:
 
     std::vector<PointObservation> getCurPointObs() const { return curPointObs; }
 
+    void printVision();
+
 private:
     std::vector<FieldLandmark> detVisLandmarks();
 
@@ -28,27 +31,18 @@ private:
 
     void determineObservations(std::vector<FieldLandmark> landmarks);
 
-    template <class Observation>
-    Observation addNoise(Observation obs);
+    void clearSeen();
 
-    void detExtremes();
+    //void detExtremes();
 
     std::vector<FieldLandmark> map;
+    //FieldLandmark map[20];
+    bool landmarkSeen[20];
     std::vector<CornerObservation> curCornerObs;
     std::vector<PointObservation> curPointObs;
     int x;
     int y;
     int h;
-
-    /**
-     * these house the extremes of our field of
-     * vision. They will be used to determine what
-     * landmarks we can see
-     */
-    int extreme_x1;
-    int extreme_x2;
-    int extreme_y1;
-    int extreme_y2;
 };
 
 #endif // VISIONSIMULATOR_H

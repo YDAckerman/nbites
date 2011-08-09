@@ -1,7 +1,7 @@
 #include "FieldPlayer.h"
 
 FieldPlayer::FieldPlayer(int x, int y, int theta, std::string name, int team, int player, QPointer<QGraphicsScene> field)
-    : localization(), odometry(), trueX(x), trueY(y), trueHeading(theta),
+    : odometry(), vision(), localization(), trueX(x), trueY(y), trueHeading(theta),
       playerName(name), teamNumber(team), playerNumber(player)
 {
     estimateX = 0;
@@ -37,6 +37,7 @@ void FieldPlayer::nextFrame()
     // Update the vision system and form lists of observed landmarks to feed
     // to the localization system.
     // ...
+    vision.updateVision(trueX, trueY, trueHeading);
 }
 
 void FieldPlayer::movePlayer(Odometry &odo)

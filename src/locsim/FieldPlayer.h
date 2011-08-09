@@ -2,13 +2,14 @@
 #define FIELDPLAYER_H
 
 #include <string>
+#include <iostream>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QPointer>
 #include "CommonStructs.h"
 #include "PlayerIndicator.h"
 #include "OdometrySimulator.h"
-//#include "VisionSimulator.h"
+#include "VisionSimulator.h"
 #include "LocalizationSimulator.h"
 
 class FieldPlayer
@@ -59,7 +60,7 @@ public:
 
 protected:
     OdometrySimulator odometry;
-    //VisionSimulator vision;
+    VisionSimulator vision;
     LocalizationSimulator localization;
 
     std::string playerName;

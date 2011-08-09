@@ -36,7 +36,8 @@ HEADERS  += simulatorwindow.h \
     FieldParticle.h \
     Field.h \
     PlayerIndicator.h \
-    VisionSimulator.h
+    VisionSimulator.h \
+    Probability.h
 
 INCLUDEPATH += "../man/include"
 INCLUDEPATH += "../man/noggin"
