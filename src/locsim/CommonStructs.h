@@ -202,6 +202,7 @@ public:
     void setDistanceSD(float _sdD) { sigma_d = _sdD; }
     void setBearingSD(float _sdB) { sigma_b = _sdB; }
     void setType(VisualLandmarkType _t) { type = _t; }
+    void addPossibility(LandmarkT possibility) { possibilities.push_back(possibility); }
 
     friend std::ostream& operator<< (std::ostream &o, const Observation &c)
     {

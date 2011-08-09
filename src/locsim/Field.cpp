@@ -44,8 +44,6 @@ void Field::next()
 
     fieldPlayer->nextFrame();
 
-    //field->clear();
-
     field->update();
 }
 
@@ -66,12 +64,16 @@ void Field::drawFieldLines()
     // Blue goal box & posts.
     field->addRect(0, 80, 60, 5, QPen(Qt::white), QBrush(Qt::white));
     field->addRect(0, 300, 60, 5, QPen(Qt::white), QBrush(Qt::white));
-    field->addRect(60, 80, 6, 225, QPen(Qt::white), QBrush(Qt::white));
-    field->addEllipse(QRect(2, 78, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
-    field->addEllipse(QRect(2, 298, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
+    field->addRect(60, 80, 5, 225, QPen(Qt::white), QBrush(Qt::white));
+    field->addEllipse(QRect(2, 120, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
+    field->addEllipse(QRect(2, 260, 10, 10), QPen(Qt::blue), QBrush(Qt::blue));
 
     // Yellow goal box & posts.
-    // @todo.
+    field->addRect(535, 80, 60, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(535, 300, 60, 5, QPen(Qt::white), QBrush(Qt::white));
+    field->addRect(535, 80, 5, 225, QPen(Qt::white), QBrush(Qt::white));
+    field->addEllipse(QRect(588, 120, 10, 10), QPen(Qt::yellow), QBrush(Qt::yellow));
+    field->addEllipse(QRect(588, 260, 10, 10), QPen(Qt::yellow), QBrush(Qt::yellow));
 }
 
 void Field::resetField()

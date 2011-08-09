@@ -125,11 +125,10 @@ void VisionSimulator::updateVision(int x,
                                    int y,
                                    int h)
 {
-    // WHY ARE THESE TWO LINES SEGFAULTING??!!!???
-    //curCornerObs.clear();
-    //curPointObs.clear();
-
+    curCornerObs.clear();
+    curPointObs.clear();
     clearSeen();
+
     std::vector<FieldLandmark> visLandmarks;
 
     // update position
@@ -153,8 +152,9 @@ std::vector<FieldLandmark> VisionSimulator::detVisLandmarks()
         // If the landmark is visible, add it to the list.
         if(isVisible(map[i]))
 	{
-            //std::cout << "Saw landmark with ID " << i << "." << std::endl;
             visibleLandmarks.push_back(map[i]);
+            // Indicate that this unique landmark as been seen.
+            landmarkSeen[i] = true;
 	}
     }
 
@@ -203,50 +203,68 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 {
     float dist;
     float bearing;
-    int bGoalCounter = 0;
-    int yGoalCounter = 0;
     for(int i= 0; i < landmarks.size(); ++i)
     {
-        /**
+        // @todo IMPORTANT give these measurements noise!!
+        // (probably should use Probability::addGaussianNoise())
+
+        /*
          * determine the dist and bearing
          */
         dist  = std::sqrt( (landmarks[i].getX() - x) *
                            (landmarks[i].getX() - x) +
                            (landmarks[i].getY() - y) *
                            (landmarks[i].getY() - y) );
-        /**
-       * find the heading of the robot->landmark
-       * vector and subtract it from the robot's
-       * heading to determine bearing
-       */
+        /*
+         * find the heading of the robot->landmark
+         * vector and subtract it from the robot's
+         * heading to determine bearing
+         */
         bearing = h - NBMath::safe_acos( (landmarks[i].getX() -
                                           x)/dist );
 
-        // Check off that we have seen this landmark.
-        landmarkSeen[landmarks[i].getID()] = true;
+        // Determine whether to create a PointObservation object or a
+        // CornerObservation object.
+        bool pointObs = false;
+        if(landmarks[i].getType() == YGP ||
+           landmarks[i].getType() == BGP ||
+           landmarks[i].getType() == CROSS)
+                pointObs = true;
 
-        /* Not sure that we need this?
-        int type = landmarks[i].getType();
-        if( type == BGP){
-            ++bGoalCounter;
-        }else if(type == YGP){
-            ++yGoalCounter;
+        // Use correlations between seen landmarks to determine
+        // ambiguity.
+        if(isAmbiguous(landmarks[i]))
+        {
+            // Ambiguous, so make a new observation, where possibilities include
+            // all landmarks of the same type.
+            if(pointObs)
+            {
+                PointObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
+                                     landmarks[i].getType());
+            }
+            else
+            {
+                CornerObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
+                                      /* @todo */0.0f, /* @todo */0.0f);
+            }
         }
-
-        if( type < 4){
+        else
+        {
+            // Not ambiguous, so no need to add all possible landmarks of the
+            // same type.
+            // @todo
         }
-        */
     }
-
-    curCornerObs.clear();
-    curPointObs.clear();
-
-    // @todo Use correlations between seen landmarks to determine
-    // ambiguity. Then, determine observations.
 }
 
 void VisionSimulator::clearSeen()
 {
     for(int i = 0; i < 20; ++i)
         landmarkSeen[i] = false;
+}
+
+bool VisionSimulator::isAmbiguous(FieldLandmark landmark)
+{
+    // @todo
+    return false;
 }

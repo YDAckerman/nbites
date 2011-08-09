@@ -27,16 +27,31 @@ public:
 private:
     std::vector<FieldLandmark> detVisLandmarks();
 
+    /**
+      * Determines whether or not a landmark is visible given the current
+      * pose of the player.
+      *
+      * @param landmark The landmark in question.
+      *
+      * @return True if visible; otherwise, false.
+      */
     bool isVisible(FieldLandmark landmark);
 
     void determineObservations(std::vector<FieldLandmark> landmarks);
 
     void clearSeen();
 
-    //void detExtremes();
+    /**
+      * Determines whether or not a landmark is ambiguous based on the
+      * stored list of landmarks that have been seen.
+      *
+      * @param landmark The landmark in question.
+      *
+      * @return True if ambiguous; otherwise, false.
+      */
+    bool isAmbiguous(FieldLandmark landmark);
 
     std::vector<FieldLandmark> map;
-    //FieldLandmark map[20];
     bool landmarkSeen[20];
     std::vector<CornerObservation> curCornerObs;
     std::vector<PointObservation> curPointObs;
