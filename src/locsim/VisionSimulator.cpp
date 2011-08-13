@@ -268,7 +268,7 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 	    }
 	  else
 	    {
-	      // is this in degrees or radians #important (twitter joke?)
+	      // is this in degrees or radians? #important (twitter joke?)
 	      float angle = landmark_i.getO();
 		
 	      // create a unit vector in the direction of this angle
@@ -290,7 +290,7 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 	      CornerObservation obs(dist , bearing, var_dist, var_bearing,
 				    orientation,var_orientation);
 	      if(landmark_i.getType() == LCORNER){
-	      
+		// @todo, actually add all the possibilities
 	      }
 	    }
 	}
