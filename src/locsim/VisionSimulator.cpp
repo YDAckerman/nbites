@@ -5,22 +5,23 @@
 VisionSimulator::VisionSimulator()
     : curCornerObs(), curPointObs(), x(0), y(0), h(0)
 {
-    map.push_back(FieldLandmark(LCORNER, 0, 0, 0));
-    map.push_back(FieldLandmark(LCORNER, 0, 400, 1));
-    map.push_back(FieldLandmark(LCORNER, 600, 0, 2));
-    map.push_back(FieldLandmark(LCORNER, 600, 400, 3));
-    map.push_back(FieldLandmark(LCORNER, 60, 90, 4));
-    map.push_back(FieldLandmark(LCORNER, 60, 310, 5));
-    map.push_back(FieldLandmark(LCORNER, 540, 90, 6));
-    map.push_back(FieldLandmark(LCORNER, 540, 310, 7));
+  // added orientation to corner landmarks
+    map.push_back(FieldLandmark(LCORNER, 0, 0, 0, 180));
+    map.push_back(FieldLandmark(LCORNER, 0, 400, 1, 90));
+    map.push_back(FieldLandmark(LCORNER, 600, 0, 2, -90));
+    map.push_back(FieldLandmark(LCORNER, 600, 400, 3, 0));
+    map.push_back(FieldLandmark(LCORNER, 60, 90, 4, -90));
+    map.push_back(FieldLandmark(LCORNER, 60, 310, 5, 0));
+    map.push_back(FieldLandmark(LCORNER, 540, 90, 6, 180));
+    map.push_back(FieldLandmark(LCORNER, 540, 310, 7, 90));
 
-    map.push_back(FieldLandmark(TCORNER, 300, 0, 8));
-    map.push_back(FieldLandmark(TCORNER, 300, 400, 9));
-    map.push_back(FieldLandmark(TCORNER, 0, 90, 10));
-    map.push_back(FieldLandmark(TCORNER, 0, 310, 11));
-    map.push_back(FieldLandmark(TCORNER, 600, 90, 12));
-    map.push_back(FieldLandmark(TCORNER, 600, 310, 13));
-
+    map.push_back(FieldLandmark(TCORNER, 300, 0, 8, -90));
+    map.push_back(FieldLandmark(TCORNER, 300, 400, 9, 90));
+    map.push_back(FieldLandmark(TCORNER, 0, 90, 10, 180));
+    map.push_back(FieldLandmark(TCORNER, 0, 310, 11, 180));
+    map.push_back(FieldLandmark(TCORNER, 600, 90, 12, 0));
+    map.push_back(FieldLandmark(TCORNER, 600, 310, 13, 0));
+    
     map.push_back(FieldLandmark(BGP, 0, 130, 14));
     map.push_back(FieldLandmark(BGP, 0, 270, 15));
 
@@ -201,70 +202,115 @@ bool VisionSimulator::isVisible(FieldLandmark landmark)
 
 void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks)
 {
-    float dist;
-    float bearing;
-    for(int i= 0; i < landmarks.size(); ++i)
+
+  /* @todo, make these variances 'correct', as in
+   * find the functions which return a variance based on dist
+   */
+  float var_dist;
+  float var_bearing;
+  
+  // hold vector's magnitude   
+  float dist;
+
+  // vector components
+  float i_component;
+  float j_component;
+  
+  float bearing;
+
+  for(int i= 0; i < landmarks.size(); ++i)
     {
-        // @todo IMPORTANT give these measurements noise!!
-        // (probably should use Probability::addGaussianNoise())
+      FieldLandmark landmark_i = landmarks[i];
+      // @todo IMPORTANT give these measurements noise!!
+      // (probably should use Probability::addGaussianNoise())
 
-        /*
-         * determine the dist and bearing
-         */
-        dist  = std::sqrt( (landmarks[i].getX() - x) *
-                           (landmarks[i].getX() - x) +
-                           (landmarks[i].getY() - y) *
-                           (landmarks[i].getY() - y) );
-        /*
-         * find the heading of the robot->landmark
-         * vector and subtract it from the robot's
-         * heading to determine bearing
-         */
-        bearing = h - NBMath::safe_acos( (landmarks[i].getX() -
-                                          x)/dist );
+      /*
+       * determine the dist and bearing
+       * @todo this is done poorly, single out the i, j components
+       * that way determining orientation measurement will be more
+       * efficient.
+       */
+      i_component = landmark_i.getX() - x;
+      j_component = landmark_i.getY() - y;
+      dist  = std::sqrt(i*i + j*j);
+      var_dist = .2*dist*dist;
+      dist = addGaussianNoise(dist,var_dist);
 
-        // Determine whether to create a PointObservation object or a
-        // CornerObservation object.
-        bool pointObs = false;
-        if(landmarks[i].getType() == YGP ||
-           landmarks[i].getType() == BGP ||
-           landmarks[i].getType() == CROSS)
-                pointObs = true;
+      /*
+       * find the heading of the robot->landmark
+       * vector and subtract it from the robot's
+       * heading to determine bearing. @todo, do
+       * we want degrees or radians, what does
+       * safe_acos return?
+       */
+      bearing = h - NBMath::safe_acos( i_component / dist );
+      var_bearing = .2 * bearing;
+      bearing = addGaussianNoise(bearing,var_bearing);
 
-        // Use correlations between seen landmarks to determine
-        // ambiguity.
-        if(isAmbiguous(landmarks[i]))
-        {
-            // Ambiguous, so make a new observation, where possibilities include
-            // all landmarks of the same type.
-            if(pointObs)
-            {
-                PointObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
-                                     landmarks[i].getType());
-            }
-            else
-            {
-                CornerObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
-                                      /* @todo */0.0f, /* @todo */0.0f);
-            }
-        }
-        else
-        {
-            // Not ambiguous, so no need to add all possible landmarks of the
-            // same type.
-            // @todo
-        }
+      // Determine whether to create a PointObservation object or a
+      // CornerObservation object.
+      bool pointObs = false;
+      if(landmark_i.getType() == YGP ||
+	 landmark_i.getType() == BGP ||
+	 landmark_i.getType() == CROSS)
+	pointObs = true;
+
+      // Use correlations between seen landmarks to determine
+      // ambiguity.
+      if(isAmbiguous(landmark_i))
+	{
+	  // Ambiguous, so make a new observation, where possibilities include
+	  // all landmarks of the same type.
+	  if(pointObs)
+	    {
+	      PointObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
+				   landmark_i.getType());
+	    }
+	  else
+	    {
+	      // is this in degrees or radians #important (twitter joke?)
+	      float angle = landmark_i.getO();
+		
+	      // create a unit vector in the direction of this angle
+	      float unit_i = std::cos(angle);
+	      float unit_j = std::sin(angle);
+		
+	      // for clarity's sake, this is the dot product divided
+	      // by the magnitude of the vector:
+	      float dot_mag = (unit_i*(-i_component) + 
+			       unit_j*(-j_component)) / dist;
+
+	      float orientation = NBMath::safe_acos(dot_mag);
+	      
+	      //this is extremely inaccurate @todo
+	      float var_orientation = .2 * orientation;
+	      
+	      orientation = addGaussianNoise(orientation,var_orientation);
+
+	      CornerObservation obs(dist , bearing, var_dist, var_bearing,
+				    orientation,var_orientation);
+	      if(landmark_i.getType() == LCORNER){
+	      
+	      }
+	    }
+	}
+      else
+	{
+	  // Not ambiguous, so no need to add all possible landmarks of the
+	  // same type.
+	  // @todo
+	}
     }
 }
 
 void VisionSimulator::clearSeen()
 {
-    for(int i = 0; i < 20; ++i)
-        landmarkSeen[i] = false;
+  for(int i = 0; i < 20; ++i)
+    landmarkSeen[i] = false;
 }
 
 bool VisionSimulator::isAmbiguous(FieldLandmark landmark)
 {
-    // @todo
-    return false;
+  // @todo
+  return false;
 }
