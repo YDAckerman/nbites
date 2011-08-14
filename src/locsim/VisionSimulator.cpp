@@ -221,6 +221,7 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
   for(int i= 0; i < landmarks.size(); ++i)
     {
       FieldLandmark landmark_i = landmarks[i];
+      int type_i = landmark_i.getType();
       // @todo IMPORTANT give these measurements noise!!
       // (probably should use Probability::addGaussianNoise())
 
@@ -250,9 +251,9 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
       // Determine whether to create a PointObservation object or a
       // CornerObservation object.
       bool pointObs = false;
-      if(landmark_i.getType() == YGP ||
-	 landmark_i.getType() == BGP ||
-	 landmark_i.getType() == CROSS)
+      if(type_i == YGP ||
+	 type_i == BGP ||
+	 type_i == CROSS)
 	pointObs = true;
 
       // Use correlations between seen landmarks to determine
@@ -263,8 +264,12 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 	  // all landmarks of the same type.
 	  if(pointObs)
 	    {
-	      PointObservation obs(dist, bearing, /* @todo */0.0f, /* @todo */0.0f,
-				   landmark_i.getType());
+	      PointObservation obs(dist, bearing, var_distance, var_bearing,
+				   type_i);
+
+	      // @todo add all the pertinent point landmarks to obs's vector
+	      // of possibilities
+	      
 	    }
 	  else
 	    {
@@ -289,8 +294,28 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 
 	      CornerObservation obs(dist , bearing, var_dist, var_bearing,
 				    orientation,var_orientation);
-	      if(landmark_i.getType() == LCORNER){
-		// @todo, actually add all the possibilities
+	      if(type_i == LCORNER){
+
+		// actually add all the possibilities
+		obs.addPossibility( CornerLandmark(0.0f,0.0f,180.0f) ); 
+		obs.addPossibility( CornerLandmark(0.0f,400.0f,90.0f) ); 
+		obs.addPossibility( CornerLandmark(600.0f,0.0f,-90.0f) ); 
+		obs.addPossibility( CornerLandmark(600.0f,400.0f,0.0f) ); 
+		obs.addPossibility( CornerLandmark(60.0f,90.0f,-90.0f) ); 
+		obs.addPossibility( CornerLandmark(60.0f,310.0f,0.0f) ); 
+		obs.addPossibility( CornerLandmark(540.0f,90.0f,180.0f) ); 
+		obs.addPossibility( CornerLandmark(540.0f,310.0f,90.0f) ); 
+
+	      }else if(type_i == TCORNER){
+
+		// actually add all the possibilities
+		obs.addPossibility( CornerLandmark(300.0f,0.0f,-90.0f) ); 
+		obs.addPossibility( CornerLandmark(300.0f,400.0f,90.0f) ); 
+		obs.addPossibility( CornerLandmark(0.0f,90.0f,180.0f) 
+		obs.addPossibility( CornerLandmark(0.0f,310.0f,1800.0f) 
+		obs.addPossibility( CornerLandmark(600.0f,90.0f,0.0f) 
+		obs.addPossibility( CornerLandmark(600.0f,310.0f,0.0f) 
+
 	      }
 	    }
 	}
