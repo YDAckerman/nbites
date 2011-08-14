@@ -267,10 +267,23 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 	      PointObservation obs(dist, bearing, var_distance, var_bearing,
 				   type_i);
 
-	      // @todo add all the pertinent point landmarks to obs's vector
+	      // add all the pertinent point landmarks to obs's vector
 	      // of possibilities
-	      
+	      if( type_i == YGP )
+		{
+		  obs.addPossibility( PointLandmark(0.0f,130.0f) ); 
+		  obs.addPossibility( PointLandmark(0.0f,270.0f) );
+		}else if( type_i == BGP )
+		{
+		  obs.addPossibility( PointLandmark(600.0f,130.0f) ); 
+		  obs.addPossibility( PointLandmark(600.0f,270.0f) );
+		}else
+		{
+		  obs.addPossibility( PointLandmark(180.0f,200.0f) ); 
+		  obs.addPossibility( PointLandmark(410.0f,200.0f) );
+		}
 	    }
+
 	  else
 	    {
 	      // is this in degrees or radians? #important (twitter joke?)
@@ -323,7 +336,22 @@ void VisionSimulator::determineObservations(std::vector<FieldLandmark> landmarks
 	{
 	  // Not ambiguous, so no need to add all possible landmarks of the
 	  // same type.
-	  // @todo
+	  if(pointObs)
+	    {
+	      PointObservation obs(dist, bearing, var_distance, var_bearing,
+				   type_i);
+	      obs.addPossibility( PointLandmark(landmark_i.getX(),
+						landmark_i.getY()
+						) );
+	    }else
+	    {
+	      CornerObservation obs(dist , bearing, var_dist, var_bearing,
+				    orientation,var_orientation);
+
+	      obs.addPossibility( CornerObservation(landmark_i.getX(),
+						    landmark_i.getY(),
+						    landmark_i.getO() );
+	    }
 	}
     }
 }
